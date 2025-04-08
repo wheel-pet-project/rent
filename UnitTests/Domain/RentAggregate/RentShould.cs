@@ -27,8 +27,7 @@ public class RentShould
         
         _booking = Booking.Create(Guid.NewGuid(), vehicleId, customerId);
         _customer = Customer.Create(customerId);
-        _vehicleModel = VehicleModel.Create(Guid.NewGuid(), Category.Create(Category.BCategory),
-            Tariff.Create(10.0M, 400.0M, 2000.0M));
+        _vehicleModel = VehicleModel.Create(Guid.NewGuid(), Tariff.Create(10.0M, 400.0M, 2000.0M));
         _vehicle = Vehicle.Create(vehicleId, _vehicleModel);
     }
     

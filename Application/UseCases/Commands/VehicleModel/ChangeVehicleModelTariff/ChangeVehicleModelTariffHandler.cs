@@ -11,7 +11,7 @@ public class ChangeVehicleModelTariffHandler(
     IVehicleModelRepository vehicleModelRepository,
     IUnitOfWork unitOfWork) : IRequestHandler<ChangeVehicleModelTariffCommand, Result>
 {
-    public async Task<Result> Handle(ChangeVehicleModelTariffCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(ChangeVehicleModelTariffCommand command, CancellationToken _)
     {
         var vehicleModel = await vehicleModelRepository.GetById(command.VehicleModelId);
         if (vehicleModel == null) throw new DataConsistencyViolationException(

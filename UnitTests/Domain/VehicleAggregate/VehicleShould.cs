@@ -13,7 +13,7 @@ public class VehicleShould
     private readonly Category _category = Category.Create(Category.BCategory);
 
     private readonly VehicleModel _vehicleModel =
-        VehicleModel.Create(Guid.NewGuid(), Category.Create(Category.BCategory), Tariff.Create(10.0M, 500.0M, 2000.0M));
+        VehicleModel.Create(Guid.NewGuid(), Tariff.Create(10.0M, 500.0M, 2000.0M));
     
     [Fact]
     public void CreateNewInstanceWithCorrectValues()

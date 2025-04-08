@@ -19,12 +19,12 @@ public class VehicleModelShould
         // Arrange
 
         // Act
-        var actual = VehicleModel.Create(_id, _category, _tariff);
+        var actual = VehicleModel.Create(_id, _tariff);
 
         // Assert
         Assert.NotNull(actual);
         Assert.Equal(_id, actual.Id);
-        Assert.Equal(_category, actual.Category);
+        Assert.Equal(_tariff, actual.Tariff);
     }
 
     [Fact]
@@ -33,23 +33,12 @@ public class VehicleModelShould
         // Arrange
 
         // Act
-        void Act() => VehicleModel.Create(Guid.Empty, _category, _tariff);
+        void Act() => VehicleModel.Create(Guid.Empty, _tariff);
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
     }
     
-    [Fact]
-    public void ThrowValueIsRequiredExceptionIfCategoryIsNull()
-    {
-        // Arrange
-
-        // Act
-        void Act() => VehicleModel.Create(_id, null!, _tariff);
-
-        // Assert
-        Assert.Throws<ValueIsRequiredException>(Act);
-    }
     
     [Fact]
     public void ThrowValueIsRequiredExceptionIfTariffIsNull()
@@ -57,7 +46,7 @@ public class VehicleModelShould
         // Arrange
 
         // Act
-        void Act() => VehicleModel.Create(_id, _category, null!);
+        void Act() => VehicleModel.Create(_id, null!);
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -67,7 +56,7 @@ public class VehicleModelShould
     public void ChangeTariffThrowValueIsRequiredExceptionITariffIsNull()
     {
         // Arrange
-        var vehicleModel = VehicleModel.Create(_id, _category, _tariff);
+        var vehicleModel = VehicleModel.Create(_id, _tariff);
 
         // Act
         void Act() => vehicleModel.ChangeTariff(null!);
@@ -80,7 +69,7 @@ public class VehicleModelShould
     public void ChangeTariffSetNewTariff()
     {
         // Arrange
-        var vehicleModel = VehicleModel.Create(_id, _category, _tariff);
+        var vehicleModel = VehicleModel.Create(_id, _tariff);
         var newTariff = Tariff.Create(20.0M, 700.0M, 3000.0M);
 
         // Act

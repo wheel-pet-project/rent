@@ -146,8 +146,6 @@ internal class VehicleModelEntityTypeConfiguration : IEntityTypeConfiguration<Ve
         builder.HasKey(x => x.Id);
         
         builder.Property(x => x.Id).ValueGeneratedNever().HasColumnName("id");
-        builder.OwnsOne(x => x.Category,
-            cfg => cfg.Property(x => x.Character).HasColumnName("category").HasConversion<char>().IsRequired());
 
         builder.OwnsOne(x => x.Tariff, cfg =>
         {
