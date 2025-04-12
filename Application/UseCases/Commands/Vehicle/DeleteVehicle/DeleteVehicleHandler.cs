@@ -14,11 +14,11 @@ public class DeleteVehicleHandler(
     {
         var vehicle = await vehicleRepository.GetById(request.Id);
         if (vehicle == null) return Result.Fail(new NotFound("Vehicle not found"));
-        
+
         vehicle.Delete();
-        
+
         vehicleRepository.Update(vehicle);
-        
+
         return await unitOfWork.Commit();
     }
 }

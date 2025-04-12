@@ -11,13 +11,13 @@ public record RentStartedDomainEvent : DomainEvent
         if (bookingId == Guid.Empty) throw new ValueIsRequiredException($"{nameof(bookingId)} cannot be empty");
         if (vehicleId == Guid.Empty) throw new ValueIsRequiredException($"{nameof(vehicleId)} cannot be empty");
         if (customerId == Guid.Empty) throw new ValueIsRequiredException($"{nameof(customerId)} cannot be empty");
-        
+
         RentId = rentId;
         BookingId = bookingId;
         VehicleId = vehicleId;
         CustomerId = customerId;
     }
-    
+
     public Guid RentId { get; }
     public Guid BookingId { get; }
     public Guid VehicleId { get; }

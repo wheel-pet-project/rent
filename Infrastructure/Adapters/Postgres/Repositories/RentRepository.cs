@@ -8,16 +8,22 @@ public class RentRepository(DataContext context) : IRentRepository
 {
     public async Task<Rent?> GetById(Guid id)
     {
-        return await context.Rents.FirstOrDefaultAsync(x => x.Id == id);
+        return await context.Rents
+            .Include(x => x.Status)
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task Add(Rent rent)
     {
+        context.Attach(rent.Status);
+
         await context.Rents.AddAsync(rent);
     }
 
     public void Update(Rent rent)
     {
+        context.Attach(rent.Status);
+
         context.Update(rent);
     }
 }

@@ -1,7 +1,6 @@
 using Domain.CustomerAggregate;
 using Domain.SharedKernel.Exceptions.ArgumentException;
 using Domain.SharedKernel.Exceptions.DomainRulesViolationException;
-using Domain.SharedKernel.ValueObjects;
 using JetBrains.Annotations;
 using Xunit;
 
@@ -90,12 +89,15 @@ public class LevelShould
         var fickle = Level.Fickle;
 
         // Act
-        void Act() => fickle.GetNewLevelForChanging(points);
+        void Act()
+        {
+            fickle.GetNewLevelForChanging(points);
+        }
 
         // Assert
         Assert.Throws<DomainRulesViolationException>(Act);
     }
-    
+
     [Fact]
     public void FromNameReturnCorrectLevel()
     {
@@ -116,7 +118,10 @@ public class LevelShould
         var invalidName = "some-level";
 
         // Act
-        void Act() => Level.FromName(invalidName);
+        void Act()
+        {
+            Level.FromName(invalidName);
+        }
 
         // Assert
         Assert.Throws<ValueOutOfRangeException>(Act);
@@ -142,12 +147,15 @@ public class LevelShould
         var invalidId = 42;
 
         // Act
-        void Act() => Level.FromId(invalidId);
+        void Act()
+        {
+            Level.FromId(invalidId);
+        }
 
         // Assert
         Assert.Throws<ValueOutOfRangeException>(Act);
     }
-    
+
     [Fact]
     public void EqualOperatorReturnTrueForEqualLevels()
     {

@@ -15,12 +15,12 @@ public class AddCompletedBookingHandlerShould
 {
     private readonly global::Domain.BookingAggregate.Booking _booking =
         global::Domain.BookingAggregate.Booking.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-    
+
     private readonly Mock<IBookingRepository> _bookingRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
 
     private readonly AddCompletedBookingCommand _command = new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-    
+
     private readonly AddCompletedBookingHandler _handler;
 
     public AddCompletedBookingHandlerShould()
@@ -28,10 +28,10 @@ public class AddCompletedBookingHandlerShould
         _bookingRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>()))
             .ReturnsAsync(null as global::Domain.BookingAggregate.Booking);
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Ok);
-        
-        _handler = new(_bookingRepositoryMock.Object, _unitOfWorkMock.Object);
+
+        _handler = new AddCompletedBookingHandler(_bookingRepositoryMock.Object, _unitOfWorkMock.Object);
     }
-    
+
     [Fact]
     public async Task ReturnSuccess()
     {
@@ -51,12 +51,15 @@ public class AddCompletedBookingHandlerShould
         _bookingRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(_booking);
 
         // Act
-        async Task Act() => await _handler.Handle(_command, TestContext.Current.CancellationToken);
+        async Task Act()
+        {
+            await _handler.Handle(_command, TestContext.Current.CancellationToken);
+        }
 
         // Assert
         await Assert.ThrowsAsync<AlreadyHaveThisStateException>(Act);
     }
-    
+
     [Fact]
     public async Task ReturnCommitErrorIfCommitFailed()
     {
@@ -65,7 +68,7 @@ public class AddCompletedBookingHandlerShould
 
         // Act
         var actual = await _handler.Handle(_command, TestContext.Current.CancellationToken);
-        
+
         // Assert
         Assert.True(actual.Errors.Exists(x => x is CommitFail));
     }

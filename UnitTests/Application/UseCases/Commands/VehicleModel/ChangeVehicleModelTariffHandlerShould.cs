@@ -16,7 +16,7 @@ public class ChangeVehicleModelTariffHandlerShould
 {
     private readonly global::Domain.VehicleModelAggregate.VehicleModel _vehicleModel =
         global::Domain.VehicleModelAggregate.VehicleModel.Create(Guid.NewGuid(), Tariff.Create(10.0M, 300.0M, 4000.0M));
-    
+
     private readonly Mock<IVehicleModelRepository> _vehicleModelRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
 
@@ -28,8 +28,8 @@ public class ChangeVehicleModelTariffHandlerShould
     {
         _vehicleModelRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(_vehicleModel);
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Ok);
-        
-        _handler = new(_vehicleModelRepositoryMock.Object, _unitOfWorkMock.Object);
+
+        _handler = new ChangeVehicleModelTariffHandler(_vehicleModelRepositoryMock.Object, _unitOfWorkMock.Object);
     }
 
     [Fact]
@@ -52,7 +52,10 @@ public class ChangeVehicleModelTariffHandlerShould
             .ReturnsAsync(null as global::Domain.VehicleModelAggregate.VehicleModel);
 
         // Act
-        async Task Act() => await _handler.Handle(_command, TestContext.Current.CancellationToken);
+        async Task Act()
+        {
+            await _handler.Handle(_command, TestContext.Current.CancellationToken);
+        }
 
         // Assert
         await Assert.ThrowsAsync<DataConsistencyViolationException>(Act);
@@ -66,7 +69,7 @@ public class ChangeVehicleModelTariffHandlerShould
 
         // Act
         var actual = await _handler.Handle(_command, TestContext.Current.CancellationToken);
-        
+
         // Assert
         Assert.True(actual.Errors.Exists(x => x is CommitFail));
     }

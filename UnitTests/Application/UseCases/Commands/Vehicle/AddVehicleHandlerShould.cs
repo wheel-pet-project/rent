@@ -15,13 +15,13 @@ public class AddVehicleHandlerShould
 {
     private readonly global::Domain.VehicleModelAggregate.VehicleModel _vehicleModel =
         global::Domain.VehicleModelAggregate.VehicleModel.Create(Guid.NewGuid(), Tariff.Create(10.0M, 300.0M, 4000.0M));
-    
+
     private readonly Mock<IVehicleModelRepository> _vehicleModelRepositoryMock = new();
     private readonly Mock<IVehicleRepository> _vehicleRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
-    
-    private readonly AddVehicleCommand _command = new AddVehicleCommand(Guid.NewGuid(), Guid.NewGuid());
-    
+
+    private readonly AddVehicleCommand _command = new(Guid.NewGuid(), Guid.NewGuid());
+
     private readonly AddVehicleHandler _handler;
 
     public AddVehicleHandlerShould()
@@ -54,13 +54,13 @@ public class AddVehicleHandlerShould
 
         // Act
         var actual = await _handler.Handle(_command, TestContext.Current.CancellationToken);
-        
+
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.True(actual.Errors.Exists(x => x is NotFound));
     }
-    
-    
+
+
     [Fact]
     public async Task ReturnCommitFailErrorIfCommitFailed()
     {

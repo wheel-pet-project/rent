@@ -33,9 +33,9 @@ public sealed class Vehicle : Aggregate
         if (vehicleModel == null) throw new ValueIsRequiredException($"{nameof(vehicleModel)} cannot be null");
 
         var vehicle = new Vehicle(id, vehicleModel.Id);
-        
+
         vehicle.AddDomainEvent(new VehicleAddedDomainEvent(vehicle.Id));
-        
+
         return vehicle;
     }
 }

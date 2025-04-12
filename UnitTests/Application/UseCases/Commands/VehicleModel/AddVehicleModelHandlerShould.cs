@@ -16,13 +16,13 @@ public class AddVehicleModelHandlerShould
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
 
     private readonly AddVehicleModelCommand _command = new(Guid.NewGuid(), 10.0, 300.0, 4000.0);
-    
+
     private readonly AddVehicleModelHandler _handler;
 
     public AddVehicleModelHandlerShould()
     {
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Ok);
-        
+
         _handler = new AddVehicleModelHandler(_vehicleModelRepositoryMock.Object, _unitOfWorkMock.Object);
     }
 
@@ -43,7 +43,7 @@ public class AddVehicleModelHandlerShould
     {
         // Arrange
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Fail(new CommitFail("", new Exception())));
-        
+
         // Act
         var actual = await _handler.Handle(_command, TestContext.Current.CancellationToken);
 

@@ -12,7 +12,7 @@ public class RentStartedDomainEventShould
     private readonly Guid _bookingId = Guid.NewGuid();
     private readonly Guid _customerId = Guid.NewGuid();
     private readonly Guid _vehicleId = Guid.NewGuid();
-    
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
@@ -35,7 +35,10 @@ public class RentStartedDomainEventShould
         // Arrange
 
         // Act
-        void Act() => new RentStartedDomainEvent(Guid.Empty, _bookingId, _vehicleId, _customerId);
+        void Act()
+        {
+            new RentStartedDomainEvent(Guid.Empty, _bookingId, _vehicleId, _customerId);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -47,7 +50,10 @@ public class RentStartedDomainEventShould
         // Arrange
 
         // Act
-        void Act() => new RentStartedDomainEvent(_rentId, Guid.Empty, _vehicleId, _customerId);
+        void Act()
+        {
+            new RentStartedDomainEvent(_rentId, Guid.Empty, _vehicleId, _customerId);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -59,7 +65,10 @@ public class RentStartedDomainEventShould
         // Arrange
 
         // Act
-        void Act() => new RentStartedDomainEvent(_rentId, _bookingId, Guid.Empty, _customerId);
+        void Act()
+        {
+            new RentStartedDomainEvent(_rentId, _bookingId, Guid.Empty, _customerId);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -71,7 +80,10 @@ public class RentStartedDomainEventShould
         // Arrange
 
         // Act
-        void Act() => new RentStartedDomainEvent(_rentId, _bookingId, _vehicleId, Guid.Empty);
+        void Act()
+        {
+            new RentStartedDomainEvent(_rentId, _bookingId, _vehicleId, Guid.Empty);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

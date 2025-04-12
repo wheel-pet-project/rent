@@ -1,7 +1,6 @@
 using CSharpFunctionalExtensions;
 using Domain.SharedKernel.Exceptions.ArgumentException;
 using Domain.SharedKernel.Exceptions.DomainRulesViolationException;
-using Domain.SharedKernel.ValueObjects;
 
 namespace Domain.CustomerAggregate;
 
@@ -34,13 +33,15 @@ public sealed class Level : Entity<int>
 
     public Level GetNewLevelForChanging(LoyaltyPoints currentPoints)
     {
-        if (IsNeededChange(currentPoints) == false) throw new DomainRulesViolationException(
-            $"{nameof(currentPoints)} not in range for changing level");
+        if (IsNeededChange(currentPoints) == false)
+            throw new DomainRulesViolationException(
+                $"{nameof(currentPoints)} not in range for changing level");
 
         if (currentPoints < NeededPoints) return All().SingleOrDefault(x => x.Id == Id - 1) ?? Fickle;
 
         var nextLevel = All().SingleOrDefault(x => x.Id == Id + 1);
-        if (nextLevel == null) throw new DomainRulesViolationException(
+        if (nextLevel == null)
+            throw new DomainRulesViolationException(
                 "This level already max, validation for needing changing incorrect");
 
         return nextLevel;

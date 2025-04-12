@@ -14,7 +14,7 @@ public class VehicleShould
 
     private readonly VehicleModel _vehicleModel =
         VehicleModel.Create(Guid.NewGuid(), Tariff.Create(10.0M, 500.0M, 2000.0M));
-    
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
@@ -35,7 +35,10 @@ public class VehicleShould
         // Arrange
 
         // Act
-        void Act() => Vehicle.Create(Guid.Empty, _vehicleModel);
+        void Act()
+        {
+            Vehicle.Create(Guid.Empty, _vehicleModel);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -48,7 +51,10 @@ public class VehicleShould
         var vehicleId = Guid.NewGuid();
 
         // Act
-        void Act() => Vehicle.Create(vehicleId, null!);
+        void Act()
+        {
+            Vehicle.Create(vehicleId, null!);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

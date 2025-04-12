@@ -13,14 +13,14 @@ public class RentEndedDomainEventShould
     private readonly Guid _customerId = Guid.NewGuid();
     private readonly Guid _vehicleId = Guid.NewGuid();
     private readonly double _totalAmount = 200.00;
-    
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
         // Arrange
 
         // Act
-        var actual = new RentEndedDomainEvent(_rentId, _bookingId, _vehicleId, _customerId, _totalAmount);
+        var actual = new RentCompletedDomainEvent(_rentId, _bookingId, _vehicleId, _customerId, _totalAmount);
 
         // Assert
         Assert.NotNull(actual);
@@ -29,14 +29,17 @@ public class RentEndedDomainEventShould
         Assert.Equal(_vehicleId, actual.VehicleId);
         Assert.Equal(_customerId, actual.CustomerId);
     }
-    
+
     [Fact]
     public void ThrowValueIsRequiredExceptionWhenRentIdIsNull()
     {
         // Arrange
 
         // Act
-        void Act() => new RentEndedDomainEvent(Guid.Empty, _bookingId, _vehicleId, _customerId, _totalAmount);
+        void Act()
+        {
+            new RentCompletedDomainEvent(Guid.Empty, _bookingId, _vehicleId, _customerId, _totalAmount);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -48,7 +51,10 @@ public class RentEndedDomainEventShould
         // Arrange
 
         // Act
-        void Act() => new RentEndedDomainEvent(_rentId, Guid.Empty, _vehicleId, _customerId, _totalAmount);
+        void Act()
+        {
+            new RentCompletedDomainEvent(_rentId, Guid.Empty, _vehicleId, _customerId, _totalAmount);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -60,7 +66,10 @@ public class RentEndedDomainEventShould
         // Arrange
 
         // Act
-        void Act() => new RentEndedDomainEvent(_rentId, _bookingId, Guid.Empty, _customerId, _totalAmount);
+        void Act()
+        {
+            new RentCompletedDomainEvent(_rentId, _bookingId, Guid.Empty, _customerId, _totalAmount);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -72,7 +81,10 @@ public class RentEndedDomainEventShould
         // Arrange
 
         // Act
-        void Act() => new RentEndedDomainEvent(_rentId, _bookingId, _vehicleId, Guid.Empty, _totalAmount);
+        void Act()
+        {
+            new RentCompletedDomainEvent(_rentId, _bookingId, _vehicleId, Guid.Empty, _totalAmount);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -84,7 +96,10 @@ public class RentEndedDomainEventShould
         // Arrange
 
         // Act
-        void Act() => new RentEndedDomainEvent(_rentId, _bookingId, _vehicleId, _customerId, 0);
+        void Act()
+        {
+            new RentCompletedDomainEvent(_rentId, _bookingId, _vehicleId, _customerId, 0);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

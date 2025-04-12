@@ -4,4 +4,4 @@ using FluentResults;
 namespace Domain.SharedKernel.Errors;
 
 [ExcludeFromCodeCoverage]
-public class NotFound(string message) : Error(message);
+public class NotFound(string message = "Not found") : Error(message);

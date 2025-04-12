@@ -52,7 +52,7 @@ public sealed class LoyaltyPoints : ValueObject
     {
         if (a is null || b is null)
             return false;
-        
+
         return !(a < b);
     }
 
@@ -66,7 +66,7 @@ public sealed class LoyaltyPoints : ValueObject
     public static bool operator >(LoyaltyPoints? a, int b)
     {
         if (a is null) return false;
-        
+
         return !(a < b);
     }
 

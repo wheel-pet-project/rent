@@ -1,7 +1,6 @@
 using Domain.CustomerAggregate;
 using Domain.SharedKernel.Exceptions.ArgumentException;
 using Domain.SharedKernel.ValueObjects;
-using Domain.VehicleModelAggregate;
 using JetBrains.Annotations;
 using Xunit;
 
@@ -11,13 +10,13 @@ namespace UnitTests.Domain.CustomerAggregate;
 public class CustomerShould
 {
     private readonly Guid _id = Guid.NewGuid();
-    private readonly List<Category> _categories = [ Category.Create(Category.BCategory) ];
-    
+    private readonly List<Category> _categories = [Category.Create(Category.BCategory)];
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
         // Arrange
-        
+
         // Act
         var actual = Customer.Create(_id);
 
@@ -31,22 +30,22 @@ public class CustomerShould
         // Arrange
 
         // Act
-        void Act() => Customer.Create(Guid.Empty);
+        void Act()
+        {
+            Customer.Create(Guid.Empty);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
     }
-    
+
 
     [Fact]
     public void ChangeToOneLevelChangeLevelToNext()
     {
         // Arrange
         var customer = Customer.Create(_id);
-        for (int i = 0; i < 101; i++)
-        {
-            customer.AddRent();
-        }
+        for (var i = 0; i < 101; i++) customer.AddRent();
 
         // Act
         customer.ChangeToOneLevel();
@@ -67,5 +66,4 @@ public class CustomerShould
         // Assert
         Assert.Equal(1, customer.Rents);
     }
-    
 }

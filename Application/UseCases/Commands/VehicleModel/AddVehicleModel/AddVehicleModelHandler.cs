@@ -13,14 +13,14 @@ public class AddVehicleModelHandler(
     public async Task<Result> Handle(AddVehicleModelCommand command, CancellationToken cancellationToken)
     {
         var tariff = Tariff.Create(
-            (decimal)command.PricePerMinute, 
+            (decimal)command.PricePerMinute,
             (decimal)command.PricePerHour,
             (decimal)command.PricePerDay);
-        
+
         var vehicleModel = Domain.VehicleModelAggregate.VehicleModel.Create(command.VehicleModelId, tariff);
-        
+
         await vehicleModelRepository.Add(vehicleModel);
-        
+
         return await unitOfWork.Commit();
     }
 }

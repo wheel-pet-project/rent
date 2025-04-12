@@ -15,22 +15,23 @@ public class DeleteVehicleHandlerShould
 {
     private readonly global::Domain.VehicleModelAggregate.VehicleModel _vehicleModel =
         global::Domain.VehicleModelAggregate.VehicleModel.Create(Guid.NewGuid(), Tariff.Create(10.0M, 300.0M, 4000.0M));
+
     private readonly global::Domain.VehicleAggregate.Vehicle _vehicle;
-    
+
     private readonly Mock<IVehicleRepository> _vehicleRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
-    
-    private DeleteVehicleCommand _command = new DeleteVehicleCommand(Guid.NewGuid());
-    
+
+    private DeleteVehicleCommand _command = new(Guid.NewGuid());
+
     private DeleteVehicleHandler _handler;
 
     public DeleteVehicleHandlerShould()
     {
         _vehicle = global::Domain.VehicleAggregate.Vehicle.Create(Guid.NewGuid(), _vehicleModel);
-        
+
         _vehicleRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(_vehicle);
         _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Ok);
-        
+
         _handler = new DeleteVehicleHandler(_vehicleRepositoryMock.Object, _unitOfWorkMock.Object);
     }
 

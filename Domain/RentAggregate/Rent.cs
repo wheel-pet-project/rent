@@ -12,20 +12,24 @@ namespace Domain.RentAggregate;
 
 public class Rent : Aggregate
 {
-    private Rent(){}
+    private Rent()
+    {
+    }
 
     private Rent(Guid bookingId, Guid customerId, Guid vehicleId, Tariff tariff, DateTime start) : this()
     {
         Id = Guid.NewGuid();
+        Status = Status.InProgress;
         BookingId = bookingId;
         CustomerId = customerId;
         VehicleId = vehicleId;
         Tariff = tariff;
         Start = start;
     }
-    
+
     public Guid Id { get; }
-    public Guid BookingId { get;  }
+    public Status Status { get; private set; } = null!;
+    public Guid BookingId { get; }
     public Guid CustomerId { get; }
     public Guid VehicleId { get; }
     public Tariff Tariff { get; } = null!;
@@ -36,31 +40,36 @@ public class Rent : Aggregate
     public decimal GetCurrentAmount(TimeProvider timeProvider)
     {
         const int minAmount = 50;
-        
+
         if (timeProvider == null) throw new ValueIsRequiredException($"{nameof(timeProvider)} cannot be null");
-        
+
         var currentAmount = End == null
             ? Tariff.PricePerMinute * (decimal)(timeProvider.GetUtcNow().UtcDateTime - Start).TotalMinutes
             : Tariff.PricePerMinute * (decimal)(End - Start).Value.TotalMinutes;
 
         currentAmount += minAmount;
-        
+
         var roundedAmount = decimal.Round(currentAmount, 2);
-        
+
         return roundedAmount;
     }
 
     public decimal Complete(TimeProvider timeProvider)
     {
         if (timeProvider == null) throw new ValueIsRequiredException($"{nameof(timeProvider)} cannot be null");
-        
+
+        if (Status.CanBeChangedToThisStatus(Status.Completed) == false)
+            throw new DomainRulesViolationException(
+                "Rent cannot be completed");
+
         var actualAmount = GetCurrentAmount(timeProvider);
-        
+
         End = timeProvider.GetUtcNow().UtcDateTime;
         ActualAmount = actualAmount;
-        
-        AddDomainEvent(new RentEndedDomainEvent(Id, BookingId, VehicleId, CustomerId, (double)actualAmount));
-        
+        Status = Status.Completed;
+
+        AddDomainEvent(new RentCompletedDomainEvent(Id, BookingId, VehicleId, CustomerId, (double)actualAmount));
+
         return actualAmount;
     }
 
@@ -76,12 +85,16 @@ public class Rent : Aggregate
         if (vehicle == null) throw new ValueIsRequiredException($"{nameof(vehicle)} cannot be null");
         if (vehicleModel == null) throw new ValueIsRequiredException($"{nameof(vehicleModel)} cannot be null");
         if (timeProvider == null) throw new ValueIsRequiredException($"{nameof(timeProvider)} cannot be null");
-        
+
+        if (booking.CustomerId != customer.Id || booking.VehicleId != vehicle.Id ||
+            vehicle.VehicleModelId != vehicleModel.Id)
+            throw new DomainRulesViolationException("Id mismatch for creating rent");
+
         var rent = new Rent(booking.Id, customer.Id, vehicle.Id, Tariff.With(vehicleModel.Tariff),
             timeProvider.GetUtcNow().UtcDateTime);
-        
+
         rent.AddDomainEvent(new RentStartedDomainEvent(rent.Id, rent.BookingId, rent.VehicleId, rent.CustomerId));
-        
+
         return rent;
     }
 }

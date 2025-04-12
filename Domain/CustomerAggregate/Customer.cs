@@ -1,6 +1,4 @@
 using Domain.SharedKernel.Exceptions.ArgumentException;
-using Domain.SharedKernel.ValueObjects;
-using Domain.VehicleModelAggregate;
 
 namespace Domain.CustomerAggregate;
 
@@ -16,6 +14,7 @@ public sealed class Customer
         Level = Level.Fickle;
         Rents = 0;
     }
+
     public Guid Id { get; private set; }
     public Level Level { get; private set; } = null!;
     public LoyaltyPoints Points => LoyaltyPoints.CreateFromRents(Rents);

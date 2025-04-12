@@ -16,14 +16,14 @@ public class CustomerRepository(DataContext context) : ICustomerRepository
     public async Task Add(Customer customer)
     {
         context.Attach(customer.Level);
-        
+
         await context.Customers.AddAsync(customer);
     }
 
     public void Update(Customer customer)
     {
         context.Attach(customer);
-        
+
         context.Customers.Update(customer);
     }
 }

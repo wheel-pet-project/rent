@@ -18,7 +18,7 @@ public class AddApprovedCustomerHandler(
                 $"Customer with id: {command.CustomerId} already exists");
 
         var customer = Domain.CustomerAggregate.Customer.Create(command.CustomerId);
-        
+
         await customerRepository.Add(customer);
 
         return await unitOfWork.Commit();

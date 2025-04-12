@@ -1,7 +1,9 @@
 using Domain.BookingAggregate;
 using Domain.CustomerAggregate;
 using Domain.RentAggregate;
+using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
 using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.DomainRulesViolationException;
 using Domain.SharedKernel.ValueObjects;
 using Domain.VehicleAggregate;
 using Domain.VehicleModelAggregate;
@@ -24,13 +26,13 @@ public class RentShould
     {
         var vehicleId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
-        
+
         _booking = Booking.Create(Guid.NewGuid(), vehicleId, customerId);
         _customer = Customer.Create(customerId);
         _vehicleModel = VehicleModel.Create(Guid.NewGuid(), Tariff.Create(10.0M, 400.0M, 2000.0M));
         _vehicle = Vehicle.Create(vehicleId, _vehicleModel);
     }
-    
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
@@ -55,7 +57,10 @@ public class RentShould
         // Arrange
 
         // Act
-        void Act() => Rent.Create(null!, _customer, _vehicle, _vehicleModel, _timeProvider);
+        void Act()
+        {
+            Rent.Create(null!, _customer, _vehicle, _vehicleModel, _timeProvider);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -67,7 +72,10 @@ public class RentShould
         // Arrange
 
         // Act
-        void Act() => Rent.Create(_booking, null!, _vehicle, _vehicleModel, _timeProvider);
+        void Act()
+        {
+            Rent.Create(_booking, null!, _vehicle, _vehicleModel, _timeProvider);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -79,7 +87,10 @@ public class RentShould
         // Arrange
 
         // Act
-        void Act() => Rent.Create(_booking, _customer, null!, _vehicleModel, _timeProvider);
+        void Act()
+        {
+            Rent.Create(_booking, _customer, null!, _vehicleModel, _timeProvider);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -89,9 +100,12 @@ public class RentShould
     public void ThrowValueIsRequiredExceptionIfVehicleModelIsNull()
     {
         // Arrange
-        
+
         // Act
-        void Act() => Rent.Create(_booking, _customer, _vehicle, null!, _timeProvider);
+        void Act()
+        {
+            Rent.Create(_booking, _customer, _vehicle, null!, _timeProvider);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -103,8 +117,11 @@ public class RentShould
         // Arrange
 
         // Act
-        void Act() => Rent.Create(_booking, _customer, _vehicle, _vehicleModel, null!);
-        
+        void Act()
+        {
+            Rent.Create(_booking, _customer, _vehicle, _vehicleModel, null!);
+        }
+
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
     }
@@ -143,7 +160,7 @@ public class RentShould
         var rent = Rent.Create(_booking, _customer, _vehicle, _vehicleModel, _timeProvider);
         var fakeTimeProvider = new FakeTimeProvider(DateTimeOffset.UtcNow.AddMinutes(10));
         rent.Complete(fakeTimeProvider);
-        
+
         fakeTimeProvider.SetUtcNow(DateTimeOffset.UtcNow.AddHours(1));
 
         // Act
@@ -180,6 +197,19 @@ public class RentShould
     }
 
     [Fact]
+    public void CompleteSetStatusToCompleted()
+    {
+        // Arrange
+        var rent = Rent.Create(_booking, _customer, _vehicle, _vehicleModel, _timeProvider);
+
+        // Act
+        rent.Complete(_timeProvider);
+
+        // Assert
+        Assert.Equal(Status.Completed, rent.Status);
+    }
+
+    [Fact]
     public void CompleteAddDomainEvent()
     {
         // Arrange
@@ -194,13 +224,33 @@ public class RentShould
     }
 
     [Fact]
+    public void CompleteThrowAlreadyHaveThisStateExceptionIfRentCannotBeCompleted()
+    {
+        // Arrange
+        var rent = Rent.Create(_booking, _customer, _vehicle, _vehicleModel, _timeProvider);
+        rent.Complete(_timeProvider);
+
+        // Act
+        void Act()
+        {
+            rent.Complete(_timeProvider);
+        }
+
+        // Assert
+        Assert.Throws<AlreadyHaveThisStateException>(Act);
+    }
+
+    [Fact]
     public void CompleteThrowValueIsRequiredExceptionIfTimeProviderIsNull()
     {
         // Arrange
         var rent = Rent.Create(_booking, _customer, _vehicle, _vehicleModel, _timeProvider);
 
         // Act
-        void Act() => rent.Complete(null!);
+        void Act()
+        {
+            rent.Complete(null!);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

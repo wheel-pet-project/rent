@@ -11,11 +11,12 @@ public class BookingShould
     private readonly Guid _bookingId = Guid.NewGuid();
     private readonly Guid _vehicleId = Guid.NewGuid();
     private readonly Guid _customerId = Guid.NewGuid();
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
         // Arrange
-        
+
 
         // Act
         var actual = Booking.Create(_bookingId, _vehicleId, _customerId);
@@ -32,7 +33,10 @@ public class BookingShould
         // Arrange
 
         // Act
-        void Act() => Booking.Create(Guid.Empty, _vehicleId, _customerId);
+        void Act()
+        {
+            Booking.Create(Guid.Empty, _vehicleId, _customerId);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -44,7 +48,10 @@ public class BookingShould
         // Arrange
 
         // Act
-        void Act() => Booking.Create(_bookingId, Guid.Empty, _customerId);
+        void Act()
+        {
+            Booking.Create(_bookingId, Guid.Empty, _customerId);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -56,7 +63,10 @@ public class BookingShould
         // Arrange
 
         // Act
-        void Act() => Booking.Create(_bookingId, _vehicleId, Guid.Empty);
+        void Act()
+        {
+            Booking.Create(_bookingId, _vehicleId, Guid.Empty);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

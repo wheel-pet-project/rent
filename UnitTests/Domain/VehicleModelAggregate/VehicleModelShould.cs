@@ -12,7 +12,7 @@ public class VehicleModelShould
     private readonly Guid _id = Guid.NewGuid();
     private readonly Category _category = Category.Create(Category.BCategory);
     private readonly Tariff _tariff = Tariff.Create(10.0M, 500.0M, 2000.0M);
-    
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
@@ -33,20 +33,26 @@ public class VehicleModelShould
         // Arrange
 
         // Act
-        void Act() => VehicleModel.Create(Guid.Empty, _tariff);
+        void Act()
+        {
+            VehicleModel.Create(Guid.Empty, _tariff);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
     }
-    
-    
+
+
     [Fact]
     public void ThrowValueIsRequiredExceptionIfTariffIsNull()
     {
         // Arrange
 
         // Act
-        void Act() => VehicleModel.Create(_id, null!);
+        void Act()
+        {
+            VehicleModel.Create(_id, null!);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
@@ -59,7 +65,10 @@ public class VehicleModelShould
         var vehicleModel = VehicleModel.Create(_id, _tariff);
 
         // Act
-        void Act() => vehicleModel.ChangeTariff(null!);
+        void Act()
+        {
+            vehicleModel.ChangeTariff(null!);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

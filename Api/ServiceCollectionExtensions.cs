@@ -1,12 +1,23 @@
+using System.Text.Json.Serialization;
+using Api.Adapters.Grpc.Contract;
+using Api.Adapters.Kafka;
 using Application.Ports.Kafka;
 using Application.Ports.Postgres;
 using Application.Ports.Postgres.Repositories;
+using Application.UseCases.Commands.Rent.StartRent;
+using Confluent.Kafka;
+using From.BookingKafkaEvents;
+using From.RentKafkaEvents;
+using From.VehicleFleetKafkaEvents.Model;
+using From.VehicleFleetKafkaEvents.Vehicle;
 using Infrastructure.Adapters.Kafka;
 using Infrastructure.Adapters.Postgres;
 using Infrastructure.Adapters.Postgres.Inbox;
 using Infrastructure.Adapters.Postgres.Outbox;
 using Infrastructure.Adapters.Postgres.Repositories;
 using MassTransit;
+using MassTransit.KafkaIntegration.Serializers;
+using MassTransit.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using OpenTelemetry.Metrics;
@@ -41,17 +52,21 @@ public static class ServiceCollectionExtensions
                                     "localhost:9092").Split("__"),
                 BookingCompletedTopic = Environment.GetEnvironmentVariable("BOOKING_COMPLETED_TOPIC") ??
                                         "booking-completed-topic",
-                MongoConnectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ??
-                                        "mongodb://carsharing:password@localhost:27017/drivinglicense?authSource=admin",
                 VehicleAddedTopic = Environment.GetEnvironmentVariable("VEHICLE_ADDED_TOPIC") ?? "vehicle-added-topic",
                 VehicleDeletedTopic = Environment.GetEnvironmentVariable("VEHICLE_DELETED_TOPIC") ??
                                       "vehicle-deleted-topic",
-                VehicleAddingProcessedTopic = Environment.GetEnvironmentVariable("VEHICLE_ADDING_TO_RENT_PROCESSED_TOPIC") ??
-                                              "vehicle-adding-to-rent-processed-topic",
+                VehicleAddingProcessedTopic =
+                    Environment.GetEnvironmentVariable("VEHICLE_ADDING_TO_RENT_PROCESSED_TOPIC") ??
+                    "vehicle-adding-to-rent-processed-topic",
                 ModelCreatedTopic = Environment.GetEnvironmentVariable("MODEL_CREATED_TOPIC") ??
                                     "model-created-topic",
-                ModelCategoryUpdatedTopic = Environment.GetEnvironmentVariable("MODEL_CATEGORY_UPDATED_TOPIC") ??
-                                            "model-category-updated-topic"
+                ModelTariffUpdatedTopic = Environment.GetEnvironmentVariable("MODEL_TARIFF_UPDATED_TOPIC") ??
+                                          "model-tariff-updated-topic",
+                RentStartedTopic = Environment.GetEnvironmentVariable("RENT_STARTED_TOPIC") ?? "rent-started-topic",
+                RentCompletedTopic = Environment.GetEnvironmentVariable("RENT_COMPLETED_TOPIC") ?? 
+                                     "rent-completed-topic",
+                MongoConnectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ??
+                                        "mongodb://carsharing:password@localhost:27017/drivinglicense?authSource=admin",
             },
             "Production" => new Configuration
             {
@@ -64,12 +79,14 @@ public static class ServiceCollectionExtensions
                 BootstrapServers = GetEnvironmentOrThrow("BOOTSTRAP_SERVERS")
                     .Split("__"),
                 BookingCompletedTopic = GetEnvironmentOrThrow("BOOKING_COMPLETED_TOPIC"),
-                MongoConnectionString = GetEnvironmentOrThrow("MONGO_CONNECTION_STRING"),
                 VehicleAddedTopic = GetEnvironmentOrThrow("VEHICLE_ADDED_TOPIC"),
                 VehicleDeletedTopic = GetEnvironmentOrThrow("VEHICLE_DELETED_TOPIC"),
                 VehicleAddingProcessedTopic = GetEnvironmentOrThrow("VEHICLE_ADDING_TO_RENT_PROCESSED_TOPIC"),
                 ModelCreatedTopic = GetEnvironmentOrThrow("MODEL_CREATED_TOPIC"),
-                ModelCategoryUpdatedTopic = GetEnvironmentOrThrow("MODEL_CATEGORY_UPDATED_TOPIC")
+                ModelTariffUpdatedTopic = GetEnvironmentOrThrow("MODEL_TARIFF_UPDATED_TOPIC"),
+                RentStartedTopic = GetEnvironmentOrThrow("RENT_STARTED_TOPIC"),
+                RentCompletedTopic = GetEnvironmentOrThrow("RENT_COMPLETED_TOPIC"),
+                MongoConnectionString = GetEnvironmentOrThrow("MONGO_CONNECTION_STRING")
             },
             _ => throw new ArgumentException("Unknown environment")
         };
@@ -119,18 +136,18 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection RegisterMediatorAndHandlers(this IServiceCollection services)
     {
-        // services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(StartRentHandler).Assembly));
+
+        return services;
+    }
+
+    public static IServiceCollection RegisterEnumMappers(this IServiceCollection services)
+    {
+        services.AddScoped<EnumMapper>();
         
         return services;
     }
 
-    // public static IServiceCollection RegisterEnumMappers(this IServiceCollection services)
-    // {
-    //     services.AddScoped<EnumMapper>();
-    //     
-    //     return services;
-    // }
-    
     public static IServiceCollection RegisterSerilog(this IServiceCollection services)
     {
         Log.Logger = new LoggerConfiguration()
@@ -153,7 +170,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IRentRepository, RentRepository>();
         services.AddTransient<IVehicleRepository, VehicleRepository>();
         services.AddTransient<IVehicleModelRepository, VehicleModelRepository>();
-        
+
 
         return services;
     }
@@ -181,47 +198,124 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection RegisterMassTransit(this IServiceCollection services)
     {
-        // services.Configure<KafkaTopicsConfiguration>(cfg =>
-        // {
-        //     cfg.VehicleCheckedTopic = Configuration.VehicleCheckedTopic;
-        //     cfg.VehicleCheckingStartedTopic = Configuration.VehicleCheckingStartedTopic;
-        // });
-        
+        services.Configure<KafkaTopicsConfiguration>(cfg =>
+        {
+            cfg.VehicleAddedTopic = Configuration.VehicleAddedTopic;
+            cfg.VehicleDeletedTopic = Configuration.VehicleDeletedTopic;
+            cfg.VehicleAddingToRentProcessedTopic = Configuration.VehicleAddingProcessedTopic;
+            cfg.RentStartedTopic = Configuration.RentStartedTopic;
+            cfg.RentCompletedTopic = Configuration.RentCompletedTopic;
+        });
+
         services.AddTransient<IMessageBus, KafkaProducer>();
-        
+
         services.AddMassTransit(x =>
         {
+            
             x.UsingInMemory();
-        
+
             x.AddRider(rider =>
             {
-                // rider.AddConsumer<BookingCreatedConsumer>();
-                //
-                // rider.AddProducer<string, VehicleChecked>(Configuration.VehicleCheckedTopic);
-                // rider.AddProducer<string, VehicleCheckingStarted>(Configuration.VehicleCheckingStartedTopic);
-                //
-                // rider.UsingKafka((context, k) =>
-                // {
-                //     k.TopicEndpoint<BookingCreated>(Configuration.BookingCompletedTopic,
-                //         "vehicle-check-consumer-group",
-                //         e =>
-                //         {
-                //             e.EnableAutoOffsetStore = false;
-                //             e.EnablePartitionEof = true;
-                //             e.AutoOffsetReset = AutoOffsetReset.Earliest;
-                //             e.CreateIfMissing();
-                //             e.UseKillSwitch(cfg =>
-                //                 cfg.SetActivationThreshold(1)
-                //                     .SetRestartTimeout(TimeSpan.FromMinutes(1))
-                //                     .SetTripThreshold(0.05)
-                //                     .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
-                //             e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
-                //             e.ConfigureConsumer<BookingCreatedConsumer>(context);
-                //         });
-                //     
-                //     
-                //     k.Host(Configuration.BootstrapServers);
-                // });
+                rider.AddConsumer<BookingCompletedConsumer>();
+                rider.AddConsumer<ModelCreatedConsumer>();
+                rider.AddConsumer<ModelTariffUpdatedConsumer>();
+                rider.AddConsumer<VehicleAddedConsumer>();
+                rider.AddConsumer<VehicleDeletedConsumer>();
+                
+                rider.AddProducer<string, RentStarted>(Configuration.RentStartedTopic);
+                rider.AddProducer<string, RentCompleted>(Configuration.RentCompletedTopic);
+                rider.AddProducer<string, VehicleAddingToRentProcessed>(Configuration.VehicleAddingProcessedTopic);
+                
+                rider.UsingKafka((context, k) =>
+                {
+                    k.TopicEndpoint<BookingCompleted>(Configuration.BookingCompletedTopic,
+                        "rent-consumer-group",
+                        e =>
+                        {
+                            e.EnableAutoOffsetStore = false;
+                            e.EnablePartitionEof = true;
+                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            e.CreateIfMissing();
+                            e.UseKillSwitch(cfg =>
+                                cfg.SetActivationThreshold(1)
+                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
+                                    .SetTripThreshold(0.05)
+                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
+                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
+                            e.ConfigureConsumer<BookingCompletedConsumer>(context);
+                        });
+                    
+                    k.TopicEndpoint<ModelCreated>(Configuration.ModelCreatedTopic,
+                        "rent-consumer-group",
+                        e =>
+                        {
+                            e.EnableAutoOffsetStore = false;
+                            e.EnablePartitionEof = true;
+                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            e.CreateIfMissing();
+                            e.UseKillSwitch(cfg =>
+                                cfg.SetActivationThreshold(1)
+                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
+                                    .SetTripThreshold(0.05)
+                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
+                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
+                            e.ConfigureConsumer<ModelCreatedConsumer>(context);
+                        });
+                    
+                    k.TopicEndpoint<ModelTariffUpdated>(Configuration.ModelTariffUpdatedTopic,
+                        "rent-consumer-group",
+                        e =>
+                        {
+                            e.EnableAutoOffsetStore = false;
+                            e.EnablePartitionEof = true;
+                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            e.CreateIfMissing();
+                            e.UseKillSwitch(cfg =>
+                                cfg.SetActivationThreshold(1)
+                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
+                                    .SetTripThreshold(0.05)
+                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
+                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
+                            e.ConfigureConsumer<ModelTariffUpdatedConsumer>(context);
+                        });
+                    
+                    k.TopicEndpoint<VehicleAdded>(Configuration.VehicleAddedTopic,
+                        "rent-consumer-group",
+                        e =>
+                        {
+                            e.EnableAutoOffsetStore = false;
+                            e.EnablePartitionEof = true;
+                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            e.CreateIfMissing();
+                            e.UseKillSwitch(cfg =>
+                                cfg.SetActivationThreshold(1)
+                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
+                                    .SetTripThreshold(0.05)
+                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
+                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
+                            e.ConfigureConsumer<VehicleAddedConsumer>(context);
+                        });
+                    
+                    k.TopicEndpoint<VehicleDeleted>(Configuration.VehicleDeletedTopic,
+                        "rent-consumer-group",
+                        e =>
+                        {
+                            e.EnableAutoOffsetStore = false;
+                            e.EnablePartitionEof = true;
+                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            e.CreateIfMissing();
+                            e.UseKillSwitch(cfg =>
+                                cfg.SetActivationThreshold(1)
+                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
+                                    .SetTripThreshold(0.05)
+                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
+                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
+                            e.ConfigureConsumer<VehicleDeletedConsumer>(context);
+                        });
+                    
+                    
+                    k.Host(Configuration.BootstrapServers);
+                });
             });
         });
 
@@ -329,12 +423,14 @@ internal class Configuration
 
     // Kafka
     public required string[] BootstrapServers { get; init; }
+    public required string RentStartedTopic { get; init; }
+    public required string RentCompletedTopic { get; init; }
     public required string BookingCompletedTopic { get; init; }
     public required string VehicleAddedTopic { get; init; }
     public required string VehicleDeletedTopic { get; init; }
     public required string VehicleAddingProcessedTopic { get; init; }
     public required string ModelCreatedTopic { get; init; }
-    public required string ModelCategoryUpdatedTopic { get; init; }
+    public required string ModelTariffUpdatedTopic { get; init; }
 
 
     // Mongo

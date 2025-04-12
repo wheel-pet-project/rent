@@ -4,11 +4,11 @@ using Xunit;
 
 namespace UnitTests.Domain.VehicleAggregate.DomainEvents;
 
-[TestSubject(typeof(VehicleAddedDomainEvent))]
-public class VehicleAddedDomainEvent
+[TestSubject(typeof(VehicleAddedDomainEventShould))]
+public class VehicleAddedDomainEventShould
 {
     private readonly Guid _vehicleId = Guid.NewGuid();
-    
+
     [Fact]
     public void CreateNewInstanceWithCorrectValues()
     {
@@ -27,7 +27,10 @@ public class VehicleAddedDomainEvent
         // Arrange
 
         // Act
-        void Act() => new global::Domain.VehicleAggregate.DomainEvents.VehicleAddedDomainEvent(Guid.Empty);
+        void Act()
+        {
+            new global::Domain.VehicleAggregate.DomainEvents.VehicleAddedDomainEvent(Guid.Empty);
+        }
 
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);

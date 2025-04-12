@@ -10,7 +10,7 @@ public class IntegrationTestBase : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgreSqlContainer = new PostgreSqlBuilder()
         .WithImage("postgres:latest")
-        .WithDatabase("vehiclefleet")
+        .WithDatabase("rent")
         .WithUsername("postgres")
         .WithPassword("password")
         .WithCleanUp(true)

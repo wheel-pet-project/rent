@@ -1,0 +1,28 @@
+using From.BookingKafkaEvents;
+using Infrastructure.Adapters.Postgres.Inbox;
+using Infrastructure.Adapters.Postgres.Inbox.InputConsumerEvents;
+using MassTransit;
+
+namespace Api.Adapters.Kafka;
+
+public class BookingCompletedConsumer(
+    IServiceScopeFactory serviceScopeFactory,
+    IInbox inbox) : IConsumer<BookingCompleted>
+{
+    public async Task Consume(ConsumeContext<BookingCompleted> context)
+    {
+        using var scope = serviceScopeFactory.CreateScope();
+
+        var @event = context.Message;
+        var bookingCompletedEvent = new BookingCompletedConsumerEvent(
+            @event.EventId,
+            @event.BookingId,
+            @event.VehicleId,
+            @event.CustomerId);
+
+        var isSaved = await inbox.Save(bookingCompletedEvent);
+        if (isSaved == false) throw new ConsumerCanceledException("Could not save event in inbox");
+
+        await context.ConsumeCompleted;
+    }
+}

@@ -4,7 +4,7 @@ using MediatR;
 namespace Application.UseCases.Commands.VehicleModel.AddVehicleModel;
 
 public record AddVehicleModelCommand(
-    Guid VehicleModelId, 
+    Guid VehicleModelId,
     double PricePerMinute,
     double PricePerHour,
     double PricePerDay) : IRequest<Result>;

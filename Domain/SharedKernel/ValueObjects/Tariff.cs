@@ -19,12 +19,12 @@ public sealed class Tariff : ValueObject
     public decimal PricePerMinute { get; private set; }
     public decimal PricePerHour { get; private set; }
     public decimal PricePerDay { get; private set; }
-    
-    
+
+
     public static Tariff With(Tariff tariff)
     {
         if (tariff == null) throw new ValueIsRequiredException($"{nameof(tariff)} cannot be null");
-        
+
         return new Tariff(tariff.PricePerMinute, tariff.PricePerHour, tariff.PricePerDay);
     }
 
