@@ -7,6 +7,7 @@ using Application.Ports.Postgres.Repositories;
 using Application.UseCases.Commands.Rent.StartRent;
 using Confluent.Kafka;
 using From.BookingKafkaEvents;
+using From.DrivingLicenseKafkaEvents;
 using From.RentKafkaEvents;
 using From.VehicleFleetKafkaEvents.Model;
 using From.VehicleFleetKafkaEvents.Vehicle;
@@ -63,10 +64,12 @@ public static class ServiceCollectionExtensions
                 ModelTariffUpdatedTopic = Environment.GetEnvironmentVariable("MODEL_TARIFF_UPDATED_TOPIC") ??
                                           "model-tariff-updated-topic",
                 RentStartedTopic = Environment.GetEnvironmentVariable("RENT_STARTED_TOPIC") ?? "rent-started-topic",
-                RentCompletedTopic = Environment.GetEnvironmentVariable("RENT_COMPLETED_TOPIC") ?? 
+                RentCompletedTopic = Environment.GetEnvironmentVariable("RENT_COMPLETED_TOPIC") ??
                                      "rent-completed-topic",
+                DrivingLicenseApprovedTopic = Environment.GetEnvironmentVariable("DRIVING_LICENSE_APPROVED_TOPIC") ??
+                                              "driving-license-approved-topic",
                 MongoConnectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ??
-                                        "mongodb://carsharing:password@localhost:27017/drivinglicense?authSource=admin",
+                                        "mongodb://carsharing:password@localhost:27017/drivinglicense?authSource=admin"
             },
             "Production" => new Configuration
             {
@@ -86,6 +89,7 @@ public static class ServiceCollectionExtensions
                 ModelTariffUpdatedTopic = GetEnvironmentOrThrow("MODEL_TARIFF_UPDATED_TOPIC"),
                 RentStartedTopic = GetEnvironmentOrThrow("RENT_STARTED_TOPIC"),
                 RentCompletedTopic = GetEnvironmentOrThrow("RENT_COMPLETED_TOPIC"),
+                DrivingLicenseApprovedTopic = GetEnvironmentOrThrow("DRIVING_LICENSE_APPROVED_TOPIC"),
                 MongoConnectionString = GetEnvironmentOrThrow("MONGO_CONNECTION_STRING")
             },
             _ => throw new ArgumentException("Unknown environment")
@@ -144,7 +148,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection RegisterEnumMappers(this IServiceCollection services)
     {
         services.AddScoped<EnumMapper>();
-        
+
         return services;
     }
 
@@ -211,21 +215,21 @@ public static class ServiceCollectionExtensions
 
         services.AddMassTransit(x =>
         {
-            
             x.UsingInMemory();
 
             x.AddRider(rider =>
             {
                 rider.AddConsumer<BookingCompletedConsumer>();
+                rider.AddConsumer<DrivingLicenseApprovedConsumer>();
                 rider.AddConsumer<ModelCreatedConsumer>();
                 rider.AddConsumer<ModelTariffUpdatedConsumer>();
                 rider.AddConsumer<VehicleAddedConsumer>();
                 rider.AddConsumer<VehicleDeletedConsumer>();
-                
+
                 rider.AddProducer<string, RentStarted>(Configuration.RentStartedTopic);
                 rider.AddProducer<string, RentCompleted>(Configuration.RentCompletedTopic);
                 rider.AddProducer<string, VehicleAddingToRentProcessed>(Configuration.VehicleAddingProcessedTopic);
-                
+
                 rider.UsingKafka((context, k) =>
                 {
                     k.TopicEndpoint<BookingCompleted>(Configuration.BookingCompletedTopic,
@@ -245,6 +249,23 @@ public static class ServiceCollectionExtensions
                             e.ConfigureConsumer<BookingCompletedConsumer>(context);
                         });
                     
+                    k.TopicEndpoint<DrivingLicenseApproved>(Configuration.DrivingLicenseApprovedTopic,
+                        "rent-consumer-group",
+                        e =>
+                        {
+                            e.EnableAutoOffsetStore = false;
+                            e.EnablePartitionEof = true;
+                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
+                            e.CreateIfMissing();
+                            e.UseKillSwitch(cfg =>
+                                cfg.SetActivationThreshold(1)
+                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
+                                    .SetTripThreshold(0.05)
+                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
+                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
+                            e.ConfigureConsumer<DrivingLicenseApprovedConsumer>(context);
+                        });
+
                     k.TopicEndpoint<ModelCreated>(Configuration.ModelCreatedTopic,
                         "rent-consumer-group",
                         e =>
@@ -261,7 +282,7 @@ public static class ServiceCollectionExtensions
                             e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
                             e.ConfigureConsumer<ModelCreatedConsumer>(context);
                         });
-                    
+
                     k.TopicEndpoint<ModelTariffUpdated>(Configuration.ModelTariffUpdatedTopic,
                         "rent-consumer-group",
                         e =>
@@ -278,7 +299,7 @@ public static class ServiceCollectionExtensions
                             e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
                             e.ConfigureConsumer<ModelTariffUpdatedConsumer>(context);
                         });
-                    
+
                     k.TopicEndpoint<VehicleAdded>(Configuration.VehicleAddedTopic,
                         "rent-consumer-group",
                         e =>
@@ -295,7 +316,7 @@ public static class ServiceCollectionExtensions
                             e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
                             e.ConfigureConsumer<VehicleAddedConsumer>(context);
                         });
-                    
+
                     k.TopicEndpoint<VehicleDeleted>(Configuration.VehicleDeletedTopic,
                         "rent-consumer-group",
                         e =>
@@ -312,8 +333,8 @@ public static class ServiceCollectionExtensions
                             e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
                             e.ConfigureConsumer<VehicleDeletedConsumer>(context);
                         });
-                    
-                    
+
+
                     k.Host(Configuration.BootstrapServers);
                 });
             });
@@ -425,6 +446,7 @@ internal class Configuration
     public required string[] BootstrapServers { get; init; }
     public required string RentStartedTopic { get; init; }
     public required string RentCompletedTopic { get; init; }
+    public required string DrivingLicenseApprovedTopic { get; init; }
     public required string BookingCompletedTopic { get; init; }
     public required string VehicleAddedTopic { get; init; }
     public required string VehicleDeletedTopic { get; init; }

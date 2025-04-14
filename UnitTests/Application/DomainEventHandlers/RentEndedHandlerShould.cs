@@ -10,7 +10,8 @@ namespace UnitTests.Application.DomainEventHandlers;
 [TestSubject(typeof(RentEndedHandler))]
 public class RentEndedHandlerShould
 {
-    private readonly RentCompletedDomainEvent _event = new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+    private readonly RentCompletedDomainEvent _event = new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+        Guid.NewGuid(),
         100);
 
     private readonly Mock<IMessageBus> _messageBusMock = new();

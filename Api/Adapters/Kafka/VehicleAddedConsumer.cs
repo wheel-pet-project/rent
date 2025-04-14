@@ -14,12 +14,12 @@ public class VehicleAddedConsumer(
         using var scope = serviceScopeFactory.CreateScope();
 
         var @event = context.Message;
-        var tariffUpdatedEvent = new VehicleAddedConsumerEvent(
+        var consumerEvent = new VehicleAddedConsumerEvent(
             @event.EventId,
             @event.VehicleId,
             @event.ModelId);
 
-        var isSaved = await inbox.Save(tariffUpdatedEvent);
+        var isSaved = await inbox.Save(consumerEvent);
         if (isSaved == false) throw new ConsumerCanceledException("Could not save event in inbox");
 
         await context.ConsumeCompleted;

@@ -12,8 +12,9 @@
         <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0"/>
         <PackageReference Include="FluentResults" Version="3.16.0"/>
         <PackageReference Include="From.BookingKafkaEvents" Version="1.2.0"/>
-        <PackageReference Include="From.RentKafkaEvents" Version="1.0.1" />
-        <PackageReference Include="From.VehicleFleetKafkaEvents" Version="1.3.0" />
+        <PackageReference Include="From.DrivingLicenseKafkaEvents" Version="1.2.0"/>
+        <PackageReference Include="From.RentKafkaEvents" Version="1.0.1"/>
+        <PackageReference Include="From.VehicleFleetKafkaEvents" Version="1.3.0"/>
         <PackageReference Include="Grpc.AspNetCore" Version="2.57.0"/>
         <PackageReference Include="Grpc.AspNetCore.HealthChecks" Version="2.70.0"/>
         <PackageReference Include="MassTransit" Version="8.4.0"/>

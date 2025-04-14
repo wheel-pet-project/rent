@@ -13,6 +13,13 @@ public class RentRepository(DataContext context) : IRentRepository
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<Rent?> GetByBookingId(Guid bookingId)
+    {
+        return await context.Rents
+            .Include(x => x.Status)
+            .FirstOrDefaultAsync(x => x.BookingId == bookingId);
+    }
+
     public async Task Add(Rent rent)
     {
         context.Attach(rent.Status);

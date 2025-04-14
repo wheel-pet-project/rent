@@ -14,14 +14,14 @@ public class ModelTariffUpdatedConsumer(
         using var scope = serviceScopeFactory.CreateScope();
 
         var @event = context.Message;
-        var modelTariffUpdatedEvent = new ModelTariffUpdatedConsumerEvent(
+        var consumerEvent = new ModelTariffUpdatedConsumerEvent(
             @event.EventId,
             @event.ModelId,
             @event.PricePerMinute,
             @event.PricePerHour,
             @event.PricePerDay);
 
-        var isSaved = await inbox.Save(modelTariffUpdatedEvent);
+        var isSaved = await inbox.Save(consumerEvent);
         if (isSaved == false) throw new ConsumerCanceledException("Could not save event in inbox");
 
         await context.ConsumeCompleted;

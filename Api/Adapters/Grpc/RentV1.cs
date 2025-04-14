@@ -19,7 +19,7 @@ public class RentV1(IMediator mediator, EnumMapper enumMapper) : Rent.RentBase
     {
         var response = await mediator.Send(new StartRentCommand(
             ParseGuidOrThrow(request.CustomerId),
-            ParseGuidOrThrow(request.BookingId), 
+            ParseGuidOrThrow(request.BookingId),
             ParseGuidOrThrow(request.VehicleId)));
 
         return response.IsSuccess
@@ -27,30 +27,34 @@ public class RentV1(IMediator mediator, EnumMapper enumMapper) : Rent.RentBase
             : ParseErrorToRpcException<StartRentResponse>(response.Errors);
     }
 
-    public override async Task<CompleteRentResponse> CompleteRent(CompleteRentRequest request, ServerCallContext context)
+    public override async Task<CompleteRentResponse> CompleteRent(
+        CompleteRentRequest request,
+        ServerCallContext context)
     {
         var response = await mediator.Send(new CompleteRentCommand(ParseGuidOrThrow(request.RentId)));
-        
+
         return response.IsSuccess
             ? new CompleteRentResponse { ActualAmount = ParseToDoubleAndRound(response.Value.ActualAmount) }
             : ParseErrorToRpcException<CompleteRentResponse>(response.Errors);
     }
 
-    public override async Task<GetAllCurrentRentsResponse> GetAllCurrentRents(GetAllCurrentRentsRequest request, ServerCallContext context)
+    public override async Task<GetAllCurrentRentsResponse> GetAllCurrentRents(
+        GetAllCurrentRentsRequest request,
+        ServerCallContext context)
     {
         var response = await mediator.Send(new GetAllCurrentRentsQuery(request.Page, request.PageSize));
-        
+
         if (response.IsFailed) return ParseErrorToRpcException<GetAllCurrentRentsResponse>(response.Errors);
-        
+
         var currentRents = new GetAllCurrentRentsResponse();
         currentRents.Rents.AddRange(response.Value.Rents.Select(x => new GetAllCurrentRentsResponse.Types.CurrentRent
         {
-            RentId = x.RentId.ToString(), 
-            CustomerId = x.CustomerId.ToString(), 
+            RentId = x.RentId.ToString(),
+            CustomerId = x.CustomerId.ToString(),
             VehicleId = x.VehicleId.ToString(),
             Start = x.Start.ToTimestamp()
         }));
-        
+
         return currentRents;
     }
 
@@ -72,7 +76,9 @@ public class RentV1(IMediator mediator, EnumMapper enumMapper) : Rent.RentBase
             : ParseErrorToRpcException<GetRentByIdResponse>(response.Errors);
     }
 
-    public override async Task<GetCurrentAmountRentResponse> GetCurrentAmountRent(GetCurrentAmountRentRequest request, ServerCallContext context)
+    public override async Task<GetCurrentAmountRentResponse> GetCurrentAmountRent(
+        GetCurrentAmountRentRequest request,
+        ServerCallContext context)
     {
         var response = await mediator.Send(new GetCurrentAmountRentQuery(ParseGuidOrThrow(request.RentId)));
 
@@ -89,7 +95,7 @@ public class RentV1(IMediator mediator, EnumMapper enumMapper) : Rent.RentBase
     {
         return Math.Round((double)value, 2);
     }
-    
+
     private T ParseErrorToRpcException<T>(List<IError> errors)
     {
         if (errors.Exists(x => x is NotFound))
@@ -101,7 +107,6 @@ public class RentV1(IMediator mediator, EnumMapper enumMapper) : Rent.RentBase
         throw new RpcException(new Status(StatusCode.InvalidArgument, string.Join(' ', errors.Select(x => x.Message))));
     }
 
-    
 
     private Guid ParseGuidOrThrow(string potentialId)
     {

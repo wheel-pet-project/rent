@@ -1,6 +1,7 @@
 using Application.Ports.Postgres;
 using Application.Ports.Postgres.Repositories;
 using Domain.SharedKernel.Errors;
+using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
 using Domain.SharedKernel.Exceptions.DataConsistencyViolationException;
 using FluentResults;
 using MediatR;
@@ -16,12 +17,14 @@ public class StartRentHandler(
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : IRequestHandler<StartRentCommand, Result<StartRentResponse>>
 {
-    public async Task<Result<StartRentResponse>> Handle(StartRentCommand command, CancellationToken _)
+    public async Task<Result<StartRentResponse>> Handle(StartRentCommand command, CancellationToken cancellationToken)
     {
-        var (booking, customer, vehicle) = await GetAggregatesInParallel(
-            command.BookingId, 
-            command.CustomerId, 
-            command.VehicleId);
+        if (await rentRepository.GetByBookingId(command.BookingId) != null)
+            throw new AlreadyHaveThisStateException("Rent already exists");
+        
+        var booking = await bookingRepository.GetById(command.BookingId);
+        var customer = await customerRepository.GetById(command.CustomerId);
+        var vehicle = await vehicleRepository.GetById(command.VehicleId);
         
         if (booking == null) return Result.Fail(new NotFound("Booking not found"));
         if (customer == null) return Result.Fail(new NotFound("Customer not found"));
@@ -40,26 +43,5 @@ public class StartRentHandler(
         return commitResult.IsSuccess
             ? new StartRentResponse(rent.Id)
             : commitResult;
-    }
-    
-    private async Task<(
-        Domain.BookingAggregate.Booking?, 
-        Domain.CustomerAggregate.Customer?, 
-        Domain.VehicleAggregate.Vehicle?)> GetAggregatesInParallel(Guid bookingId, Guid customerId, Guid vehicleId)
-    {
-        Domain.BookingAggregate.Booking? booking = null;
-        Domain.CustomerAggregate.Customer? customer = null;
-        Domain.VehicleAggregate.Vehicle? vehicle = null;
-
-        await Task.WhenAll(GetBooking(), GetCustomer(), GetVehicle());
-            
-        return (booking, customer, vehicle);
-        
-
-        async Task GetBooking() => booking = await bookingRepository.GetById(bookingId);
-
-        async Task GetCustomer() => customer = await customerRepository.GetById(customerId);
-
-        async Task GetVehicle() => vehicle = await vehicleRepository.GetById(vehicleId);
     }
 }

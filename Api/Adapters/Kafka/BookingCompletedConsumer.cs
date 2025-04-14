@@ -14,13 +14,13 @@ public class BookingCompletedConsumer(
         using var scope = serviceScopeFactory.CreateScope();
 
         var @event = context.Message;
-        var bookingCompletedEvent = new BookingCompletedConsumerEvent(
+        var consumerEvent = new BookingCompletedConsumerEvent(
             @event.EventId,
             @event.BookingId,
             @event.VehicleId,
             @event.CustomerId);
 
-        var isSaved = await inbox.Save(bookingCompletedEvent);
+        var isSaved = await inbox.Save(consumerEvent);
         if (isSaved == false) throw new ConsumerCanceledException("Could not save event in inbox");
 
         await context.ConsumeCompleted;
