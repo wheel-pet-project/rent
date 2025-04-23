@@ -8,6 +8,7 @@ public class RentCompletedHandler(IMessageBus messageBus) : INotificationHandler
 {
     public async Task Handle(RentCompletedDomainEvent domainEvent, CancellationToken cancellationToken)
     {
+        // todo: add updating level in loyalty program
         await messageBus.Publish(domainEvent, cancellationToken);
     }
 }

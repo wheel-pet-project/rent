@@ -1,4 +1,3 @@
-using Application.UseCases.Queries.Rent.GetCurrentAmountRent;
 using Application.UseCases.Queries.Rent.GetRentById;
 using Domain.BookingAggregate;
 using Domain.CustomerAggregate;
@@ -7,7 +6,6 @@ using Domain.SharedKernel.Errors;
 using Domain.SharedKernel.ValueObjects;
 using Domain.VehicleAggregate;
 using Domain.VehicleModelAggregate;
-using Infrastructure.Adapters.Postgres.Repositories;
 using JetBrains.Annotations;
 using Xunit;
 

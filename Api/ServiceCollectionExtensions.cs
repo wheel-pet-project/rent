@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Api.Adapters.Grpc.Contract;
 using Api.Adapters.Kafka;
 using Application.Ports.Kafka;
@@ -17,8 +16,6 @@ using Infrastructure.Adapters.Postgres.Inbox;
 using Infrastructure.Adapters.Postgres.Outbox;
 using Infrastructure.Adapters.Postgres.Repositories;
 using MassTransit;
-using MassTransit.KafkaIntegration.Serializers;
-using MassTransit.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using OpenTelemetry.Metrics;

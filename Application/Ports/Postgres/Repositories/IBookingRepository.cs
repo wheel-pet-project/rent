@@ -7,6 +7,4 @@ public interface IBookingRepository
     Task<Booking?> GetById(Guid id);
 
     Task Add(Booking booking);
-
-    public void Update(Booking booking);
 }

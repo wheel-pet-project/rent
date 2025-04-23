@@ -15,9 +15,4 @@ public class BookingRepository(DataContext context) : IBookingRepository
     {
         await context.Bookings.AddAsync(booking);
     }
-
-    public void Update(Booking booking)
-    {
-        context.Update(booking);
-    }
 }
