@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Application.DomainEventHandlers;
 
-public class RentEndedHandler(IMessageBus messageBus) : INotificationHandler<RentCompletedDomainEvent>
+public class RentCompletedHandler(IMessageBus messageBus) : INotificationHandler<RentCompletedDomainEvent>
 {
     public async Task Handle(RentCompletedDomainEvent domainEvent, CancellationToken cancellationToken)
     {

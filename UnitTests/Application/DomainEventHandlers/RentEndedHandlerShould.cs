@@ -7,7 +7,7 @@ using Xunit;
 
 namespace UnitTests.Application.DomainEventHandlers;
 
-[TestSubject(typeof(RentEndedHandler))]
+[TestSubject(typeof(RentCompletedHandler))]
 public class RentEndedHandlerShould
 {
     private readonly RentCompletedDomainEvent _event = new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
@@ -20,7 +20,7 @@ public class RentEndedHandlerShould
     public async Task CallMessageBusPublish()
     {
         // Arrange
-        var handler = new RentEndedHandler(_messageBusMock.Object);
+        var handler = new RentCompletedHandler(_messageBusMock.Object);
 
         // Act
         await handler.Handle(_event, TestContext.Current.CancellationToken);

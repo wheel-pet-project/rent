@@ -22,6 +22,7 @@ public class KafkaProducer(
         await producer.Produce(domainEvent.EventId.ToString(),
             new VehicleAddingToRentProcessed(
                 domainEvent.EventId,
+                domainEvent.SagaId,
                 domainEvent.VehicleId,
                 true),
             SetMessageId<VehicleAddingToRentProcessed, VehicleAddedDomainEvent>(domainEvent), cancellationToken);

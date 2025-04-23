@@ -24,11 +24,14 @@ public class GetAllCurrentRentsQueryHandler(
             .ToList());
     }
 
-    private int CalculateOffset(int page, int pageSize)
+    private int CalculateOffset(int? page, int? pageSize)
     {
-        return page < 1
+        page ??= 1;
+        pageSize ??= 10;
+        
+        return page.Value < 1
             ? 1
-            : (page - 1) * pageSize;
+            : (page.Value - 1) * pageSize.Value;
     }
 
     private record RentDapperModel(Guid RentId, Guid VehicleId, Guid CustomerId, DateTime Start);

@@ -36,7 +36,7 @@ public class AddRentHandlerShould
         _customer = global::Domain.CustomerAggregate.Customer.Create(Guid.NewGuid());
         _vehicleModel = global::Domain.VehicleModelAggregate.VehicleModel.Create(Guid.NewGuid(),
             Tariff.Create(10.0M, 200.0M, 1000.0M));
-        _vehicle = global::Domain.VehicleAggregate.Vehicle.Create(Guid.NewGuid(), _vehicleModel);
+        _vehicle = global::Domain.VehicleAggregate.Vehicle.Create(Guid.NewGuid(), Guid.NewGuid(), _vehicleModel);
         _booking = global::Domain.BookingAggregate.Booking.Create(Guid.NewGuid(), _vehicle.Id, _customer.Id);
 
         _customerRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(_customer);

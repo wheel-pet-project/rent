@@ -17,7 +17,7 @@ public class StartRentHandler(
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider) : IRequestHandler<StartRentCommand, Result<StartRentResponse>>
 {
-    public async Task<Result<StartRentResponse>> Handle(StartRentCommand command, CancellationToken cancellationToken)
+    public async Task<Result<StartRentResponse>> Handle(StartRentCommand command, CancellationToken _)
     {
         if (await rentRepository.GetByBookingId(command.BookingId) != null)
             throw new AlreadyHaveThisStateException("Rent already exists");

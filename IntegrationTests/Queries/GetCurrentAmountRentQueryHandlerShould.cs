@@ -24,7 +24,7 @@ public class GetCurrentAmountRentQueryHandlerShould : IntegrationTestBase
     public GetCurrentAmountRentQueryHandlerShould()
     {
         _vehicleModel = VehicleModel.Create(Guid.NewGuid(), Tariff.Create(10.0M, 200.0M, 1000.0M));
-        _vehicle = Vehicle.Create(Guid.NewGuid(), _vehicleModel);
+        _vehicle = Vehicle.Create(Guid.NewGuid(), Guid.NewGuid(), _vehicleModel);
         _customer = Customer.Create(Guid.NewGuid());
         _booking = Booking.Create(Guid.NewGuid(), _vehicle.Id, _customer.Id);
         _rent = Rent.Create(_booking, _customer, _vehicle, _vehicleModel, TimeProvider.System);
