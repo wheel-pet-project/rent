@@ -5,14 +5,10 @@ using MassTransit;
 
 namespace Api.Adapters.Kafka;
 
-public class BookingCompletedConsumer(
-    IServiceScopeFactory serviceScopeFactory,
-    IInbox inbox) : IConsumer<BookingCompleted>
+public class BookingCompletedConsumer(IInbox inbox) : IConsumer<BookingCompleted>
 {
     public async Task Consume(ConsumeContext<BookingCompleted> context)
     {
-        using var scope = serviceScopeFactory.CreateScope();
-
         var @event = context.Message;
         var consumerEvent = new BookingCompletedConsumerEvent(
             @event.EventId,

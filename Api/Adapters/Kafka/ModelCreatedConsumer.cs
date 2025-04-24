@@ -11,8 +11,6 @@ public class ModelCreatedConsumer(
 {
     public async Task Consume(ConsumeContext<ModelCreated> context)
     {
-        using var scope = serviceScopeFactory.CreateScope();
-
         var @event = context.Message;
         var consumerEvent = new ModelCreatedConsumerEvent(
             @event.EventId,

@@ -1,4 +1,3 @@
-using Domain.CustomerAggregate;
 using Domain.SharedKernel.ValueObjects;
 using Domain.VehicleModelAggregate;
 using Infrastructure.Adapters.Postgres;
