@@ -81,6 +81,7 @@ public class GetCurrentAmountRentQueryHandlerShould : IntegrationTestBase
         await Context.Bookings.AddAsync(booking);
         await Context.SaveChangesAsync();
 
+        Context.Attach(rent.Status);
         await Context.Rents.AddAsync(rent);
         await Context.SaveChangesAsync();
 

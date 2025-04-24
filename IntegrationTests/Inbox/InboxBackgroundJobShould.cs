@@ -29,7 +29,7 @@ public class InboxBackgroundJobShould : IntegrationTestBase
     public async Task MarkProcessedEvents()
     {
         // Arrange
-        var inbox = new Infrastructure.Adapters.Postgres.Inbox.Inbox(Context);
+        var inbox = new Infrastructure.Adapters.Postgres.Inbox.Inbox(DataSource);
         await inbox.Save(_event);
         var jobBuilder = new InboxBackgroundJobBuilder(DataSource);
         var job = jobBuilder.Build();
@@ -49,7 +49,7 @@ public class InboxBackgroundJobShould : IntegrationTestBase
     public async Task ReadAndMediatorSendCommandOneTimes()
     {
         // Arrange
-        var inbox = new Infrastructure.Adapters.Postgres.Inbox.Inbox(Context);
+        var inbox = new Infrastructure.Adapters.Postgres.Inbox.Inbox(DataSource);
         await inbox.Save(_event);
         var jobBuilder = new InboxBackgroundJobBuilder(DataSource);
         var job = jobBuilder.Build();

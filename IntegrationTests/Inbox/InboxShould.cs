@@ -24,7 +24,7 @@ public class InboxShould : IntegrationTestBase
     public async Task SaveEvent()
     {
         // Arrange
-        _inbox = new Infrastructure.Adapters.Postgres.Inbox.Inbox(Context);
+        _inbox = new Infrastructure.Adapters.Postgres.Inbox.Inbox(DataSource);
     
         // Act
         await _inbox.Save(_event);

@@ -89,6 +89,7 @@ public class GetRentByIdQueryHandlerShould : IntegrationTestBase
 
         rent.Complete(TimeProvider.System);
 
+        Context.Attach(rent.Status);
         await Context.Rents.AddAsync(rent);
         await Context.SaveChangesAsync();
 

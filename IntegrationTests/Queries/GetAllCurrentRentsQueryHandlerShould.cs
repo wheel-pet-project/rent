@@ -88,6 +88,7 @@ public class GetAllCurrentRentsQueryHandlerShould : IntegrationTestBase
 
         if (completeRent) rent.Complete(TimeProvider.System);
 
+        Context.Attach(rent.Status);
         await Context.Rents.AddAsync(rent);
         await Context.SaveChangesAsync();
 
