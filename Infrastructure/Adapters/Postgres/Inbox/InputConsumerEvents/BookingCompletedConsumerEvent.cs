@@ -8,7 +8,7 @@ public class BookingCompletedConsumerEvent(
     Guid eventId,
     Guid bookingId,
     Guid vehicleId,
-    Guid customerId) : IInputConsumerEvent
+    Guid customerId) : IConvertibleToCommand
 {
     public Guid EventId { get; } = eventId;
     public Guid BookingId { get; } = bookingId;

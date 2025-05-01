@@ -1,6 +1,6 @@
 using Application.Ports.Postgres;
 using Application.Ports.Postgres.Repositories;
-using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
+using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
 using FluentResults;
 using MediatR;
 
@@ -13,8 +13,7 @@ public class AddApprovedCustomerHandler(
     public async Task<Result> Handle(AddApprovedCustomerCommand command, CancellationToken cancellationToken)
     {
         var existingCustomer = await customerRepository.GetById(command.CustomerId);
-        if (existingCustomer != null)
-            throw new AlreadyHaveThisStateException(
+        if (existingCustomer != null) throw new AlreadyHaveThisStateException(
                 $"Customer with id: {command.CustomerId} already exists");
 
         var customer = Domain.CustomerAggregate.Customer.Create(command.CustomerId);

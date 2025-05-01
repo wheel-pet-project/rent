@@ -1,5 +1,7 @@
 using Application.Ports.Postgres;
 using Application.Ports.Postgres.Repositories;
+using Application.UseCases.Commands.Vehicle.AddVehicle;
+using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
 using Domain.SharedKernel.ValueObjects;
 using FluentResults;
 using MediatR;
@@ -12,6 +14,8 @@ public class AddVehicleModelHandler(
 {
     public async Task<Result> Handle(AddVehicleModelCommand command, CancellationToken cancellationToken)
     {
+        await CheckVehicleModelExisting(command);
+        
         var tariff = Tariff.Create(
             (decimal)command.PricePerMinute,
             (decimal)command.PricePerHour,
@@ -22,5 +26,11 @@ public class AddVehicleModelHandler(
         await vehicleModelRepository.Add(vehicleModel);
 
         return await unitOfWork.Commit();
+    }
+
+    private async Task CheckVehicleModelExisting(AddVehicleModelCommand command)
+    {
+        if (await vehicleModelRepository.GetById(command.VehicleModelId) != null)
+            throw new AlreadyHaveThisStateException("Vehicle model already exists");
     }
 }

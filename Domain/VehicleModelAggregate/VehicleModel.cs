@@ -1,4 +1,5 @@
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using System;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using Domain.SharedKernel.ValueObjects;
 
 namespace Domain.VehicleModelAggregate;

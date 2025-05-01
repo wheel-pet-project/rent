@@ -11,7 +11,7 @@ public class Inbox(NpgsqlDataSource dataSource) : IInbox
 
     private readonly JsonSerializerSettings _jsonSettings = new() { TypeNameHandling = TypeNameHandling.All };
 
-    public async Task<bool> Save(IInputConsumerEvent consumerEvent)
+    public async Task<bool> Save(IConvertibleToCommand consumerEvent)
     {
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var transaction = await connection.BeginTransactionAsync();

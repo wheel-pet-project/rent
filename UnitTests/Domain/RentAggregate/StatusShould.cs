@@ -1,6 +1,6 @@
 using Domain.RentAggregate;
-using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using JetBrains.Annotations;
 using Xunit;
 
@@ -23,7 +23,7 @@ public class StatusShould
     }
 
     [Fact]
-    public void FromNameThrowValueOutOfRangeExceptionIfStatusNameIsNotSupported()
+    public void FromNameThrowValueIsUnsupportedIfStatusNameIsNotSupported()
     {
         // Arrange
         var name = "unsupported";
@@ -35,7 +35,7 @@ public class StatusShould
         }
 
         // Assert
-        Assert.Throws<ValueOutOfRangeException>(Act);
+        Assert.Throws<ValueIsUnsupportedException>(Act);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class StatusShould
     }
 
     [Fact]
-    public void FromIdThrowValueOutOfRangeExceptionIfStatusIdIsNotSupported()
+    public void FromIdThrowValueIsUnsupportedIfStatusIdIsNotSupported()
     {
         // Arrange
         var id = 434;
@@ -64,7 +64,7 @@ public class StatusShould
         }
 
         // Assert
-        Assert.Throws<ValueOutOfRangeException>(Act);
+        Assert.Throws<ValueIsUnsupportedException>(Act);
     }
 
     [Fact]

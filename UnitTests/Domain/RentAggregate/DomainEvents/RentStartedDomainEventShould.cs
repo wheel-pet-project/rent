@@ -1,5 +1,4 @@
 using Domain.RentAggregate.DomainEvents;
-using Domain.SharedKernel.Exceptions.ArgumentException;
 using JetBrains.Annotations;
 using Xunit;
 
@@ -30,7 +29,7 @@ public class RentStartedDomainEventShould
     }
 
     [Fact]
-    public void ThrowValueIsRequiredExceptionWhenRentIdIsNull()
+    public void ThrowArgumentExceptionWhenRentIdIsNull()
     {
         // Arrange
 
@@ -41,11 +40,11 @@ public class RentStartedDomainEventShould
         }
 
         // Assert
-        Assert.Throws<ValueIsRequiredException>(Act);
+        Assert.Throws<ArgumentException>(Act);
     }
 
     [Fact]
-    public void ThrowValueIsRequiredExceptionWhenBookingIdIsNull()
+    public void ThrowArgumentExceptionWhenBookingIdIsNull()
     {
         // Arrange
 
@@ -56,11 +55,11 @@ public class RentStartedDomainEventShould
         }
 
         // Assert
-        Assert.Throws<ValueIsRequiredException>(Act);
+        Assert.Throws<ArgumentException>(Act);
     }
 
     [Fact]
-    public void ThrowValueIsRequiredExceptionWhenVehicleIdIsNull()
+    public void ThrowArgumentExceptionWhenVehicleIdIsNull()
     {
         // Arrange
 
@@ -71,11 +70,11 @@ public class RentStartedDomainEventShould
         }
 
         // Assert
-        Assert.Throws<ValueIsRequiredException>(Act);
+        Assert.Throws<ArgumentException>(Act);
     }
 
     [Fact]
-    public void ThrowValueIsRequiredExceptionWhenCustomerIdIsNull()
+    public void ThrowArgumentExceptionWhenCustomerIdIsNull()
     {
         // Arrange
 
@@ -86,6 +85,6 @@ public class RentStartedDomainEventShould
         }
 
         // Assert
-        Assert.Throws<ValueIsRequiredException>(Act);
+        Assert.Throws<ArgumentException>(Act);
     }
 }

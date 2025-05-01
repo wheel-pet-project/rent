@@ -1,5 +1,5 @@
 using Domain.RentAggregate;
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 
 namespace Api.Adapters.Grpc.Contract;
 
@@ -11,7 +11,7 @@ public class EnumMapper
         {
             _ when domainCategory == Status.InProgress => RentStatus.InProgressUnspecified,
             _ when domainCategory == Status.Completed => RentStatus.Completed,
-            _ => throw new ValueOutOfRangeException($"{nameof(domainCategory)} is unknown category")
+            _ => throw new ValueIsUnsupportedException($"{nameof(domainCategory)} is unknown category")
         };
     }
 
@@ -21,7 +21,7 @@ public class EnumMapper
         {
             RentStatus.InProgressUnspecified => Status.InProgress,
             RentStatus.Completed => Status.Completed,
-            _ => throw new ValueOutOfRangeException($"{nameof(protoCategory)} is unknown category")
+            _ => throw new ValueIsUnsupportedException($"{nameof(protoCategory)} is unknown category")
         };
     }
 }

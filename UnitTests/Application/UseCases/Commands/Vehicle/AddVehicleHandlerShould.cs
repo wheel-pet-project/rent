@@ -2,6 +2,7 @@ using Application.Ports.Postgres;
 using Application.Ports.Postgres.Repositories;
 using Application.UseCases.Commands.Vehicle.AddVehicle;
 using Domain.SharedKernel.Errors;
+using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
 using Domain.SharedKernel.ValueObjects;
 using FluentResults;
 using JetBrains.Annotations;
@@ -45,6 +46,21 @@ public class AddVehicleHandlerShould
         Assert.True(actual.IsSuccess);
     }
 
+    [Fact]
+    public async Task ThrowAlreadyHaveThisStateExceptionIfVehicleAlreadyExist()
+    {
+        // Arrange
+        _vehicleRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>()))
+            .ReturnsAsync(
+                global::Domain.VehicleAggregate.Vehicle.Create(Guid.NewGuid(), Guid.NewGuid(), _vehicleModel));
+
+        // Act
+        async Task Act() => await _handler.Handle(_command, TestContext.Current.CancellationToken);
+
+        // Assert
+        await Assert.ThrowsAsync<AlreadyHaveThisStateException>(Act);
+    }
+    
     [Fact]
     public async Task ReturnNotFoundErrorIfVehicleModelNotFound()
     {

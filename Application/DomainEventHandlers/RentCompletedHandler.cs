@@ -3,7 +3,7 @@ using Application.Ports.Postgres;
 using Application.Ports.Postgres.Repositories;
 using Domain.RentAggregate.DomainEvents;
 using Domain.SharedKernel.Errors;
-using Domain.SharedKernel.Exceptions.DataConsistencyViolationException;
+using Domain.SharedKernel.Exceptions.InternalExceptions;
 using MediatR;
 
 namespace Application.DomainEventHandlers;

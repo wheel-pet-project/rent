@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
-using Domain.SharedKernel.Exceptions.ArgumentException;
-using Domain.SharedKernel.Exceptions.DomainRulesViolationException;
+using Domain.SharedKernel.Exceptions.InternalExceptions;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 
 namespace Domain.CustomerAggregate;
 
@@ -37,28 +37,41 @@ public sealed class Level : Entity<int>
             throw new DomainRulesViolationException(
                 $"{nameof(currentPoints)} not in range for changing level");
 
-        if (currentPoints < NeededPoints) return All().SingleOrDefault(x => x.Id == Id - 1) ?? Fickle;
+        return currentPoints < NeededPoints 
+            ? GetLevelDownOrThrow() 
+            : GetLevelUpOrThrow();
 
-        var nextLevel = All().SingleOrDefault(x => x.Id == Id + 1);
-        if (nextLevel == null)
-            throw new DomainRulesViolationException(
+        Level GetLevelDownOrThrow()
+        {
+            var levelDown = All().SingleOrDefault(x => x.Id == Id - 1);
+            if (levelDown == null) throw new DomainRulesViolationException(
+                "This level already min, validation for needing changing incorrect");
+            
+            return levelDown;
+        }
+        
+        Level GetLevelUpOrThrow()
+        {
+            var levelUp = All().SingleOrDefault(x => x.Id == Id + 1);
+            if (levelUp == null) throw new DomainRulesViolationException(
                 "This level already max, validation for needing changing incorrect");
-
-        return nextLevel;
+            
+            return levelUp;
+        }
     }
 
     public static Level FromName(string name)
     {
         var level = All()
             .SingleOrDefault(s => string.Equals(s.Name, name, StringComparison.CurrentCultureIgnoreCase));
-        if (level == null) throw new ValueOutOfRangeException($"{nameof(name)} unknown level or null");
+        if (level == null) throw new ValueIsUnsupportedException($"{nameof(name)} unknown level or null");
         return level;
     }
 
     public static Level FromId(int id)
     {
         var level = All().SingleOrDefault(s => s.Id == id);
-        if (level == null) throw new ValueOutOfRangeException($"{nameof(id)} unknown level or null");
+        if (level == null) throw new ValueIsUnsupportedException($"{nameof(id)} unknown level or null");
         return level;
     }
 

@@ -19,6 +19,11 @@ public class GetCurrentAmountRentQueryHandler(
 
         var currentAmount = rent.GetCurrentAmount(timeProvider);
 
+        return MapToResponse(rent, currentAmount);
+    }
+
+    private GetCurrentAmountRentQueryResponse MapToResponse(Domain.RentAggregate.Rent rent, decimal currentAmount)
+    {
         return new GetCurrentAmountRentQueryResponse(rent.Id, currentAmount);
     }
 }

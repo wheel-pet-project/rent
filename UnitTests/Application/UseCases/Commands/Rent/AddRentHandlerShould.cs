@@ -2,7 +2,8 @@ using Application.Ports.Postgres;
 using Application.Ports.Postgres.Repositories;
 using Application.UseCases.Commands.Rent.StartRent;
 using Domain.SharedKernel.Errors;
-using Domain.SharedKernel.Exceptions.DataConsistencyViolationException;
+using Domain.SharedKernel.Exceptions.InternalExceptions;
+using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
 using Domain.SharedKernel.ValueObjects;
 using FluentResults;
 using JetBrains.Annotations;
@@ -61,6 +62,21 @@ public class AddRentHandlerShould
         // Assert
         Assert.True(actual.IsSuccess);
         Assert.NotEqual(Guid.Empty, actual.Value.RentId);
+    }
+
+    [Fact]
+    public async Task ThrowAlreadyHaveThisStateExceptionIfRentAlreadyExists()
+    {
+        // Arrange
+        _rentRepositoryMock.Setup(x => x.GetByBookingId(It.IsAny<Guid>()))
+            .ReturnsAsync(global::Domain.RentAggregate.Rent.Create(_booking, _customer, _vehicle, _vehicleModel,
+                _timeProvider));
+
+        // Act
+        async Task Act() => await _handler.Handle(_command, TestContext.Current.CancellationToken);
+
+        // Assert
+        await Assert.ThrowsAsync<AlreadyHaveThisStateException>(Act);
     }
 
     [Fact]

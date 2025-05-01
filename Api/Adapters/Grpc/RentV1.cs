@@ -5,7 +5,7 @@ using Application.UseCases.Queries.Rent.GetAllCurrentRents;
 using Application.UseCases.Queries.Rent.GetCurrentAmountRent;
 using Application.UseCases.Queries.Rent.GetRentById;
 using Domain.SharedKernel.Errors;
-using Domain.SharedKernel.Exceptions.ArgumentException;
+using Domain.SharedKernel.Exceptions.PublicExceptions;
 using FluentResults;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -112,6 +112,6 @@ public class RentV1(IMediator mediator, EnumMapper enumMapper) : Rent.RentBase
     {
         return Guid.TryParse(potentialId, out var id)
             ? id
-            : throw new ValueOutOfRangeException($"{nameof(potentialId)} is invalid uuid");
+            : throw new ValueIsUnsupportedException($"{nameof(potentialId)} is invalid uuid");
     }
 }

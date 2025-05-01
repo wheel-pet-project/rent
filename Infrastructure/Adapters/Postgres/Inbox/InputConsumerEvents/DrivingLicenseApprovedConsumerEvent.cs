@@ -6,7 +6,7 @@ namespace Infrastructure.Adapters.Postgres.Inbox.InputConsumerEvents;
 
 public class DrivingLicenseApprovedConsumerEvent(
     Guid eventId,
-    Guid customerId) : IInputConsumerEvent
+    Guid customerId) : IConvertibleToCommand
 {
     public Guid EventId { get; } = eventId;
     public Guid CustomerId { get; } = customerId;

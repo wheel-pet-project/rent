@@ -5,7 +5,7 @@ using Application.Ports.Postgres.Repositories;
 using Domain.CustomerAggregate;
 using Domain.RentAggregate.DomainEvents;
 using Domain.SharedKernel.Errors;
-using Domain.SharedKernel.Exceptions.DataConsistencyViolationException;
+using Domain.SharedKernel.Exceptions.InternalExceptions;
 using FluentResults;
 using JetBrains.Annotations;
 using Moq;

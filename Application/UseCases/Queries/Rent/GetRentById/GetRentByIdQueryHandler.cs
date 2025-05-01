@@ -18,6 +18,11 @@ public class GetRentByIdQueryHandler(
         var rent = await connection.QuerySingleOrDefaultAsync<RentDapperModel>(Sql, new { RentId = query.RentId });
         if (rent == null) return Result.Fail(new NotFound("Rent not found"));
 
+        return MapToResponse(rent);
+    }
+
+    private GetRentByIdQueryResponse MapToResponse(RentDapperModel rent)
+    {
         return new GetRentByIdQueryResponse(
             rent.RentId,
             Status.FromId(rent.StatusId),

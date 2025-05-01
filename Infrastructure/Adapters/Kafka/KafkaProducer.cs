@@ -24,7 +24,7 @@ public class KafkaProducer(
                 domainEvent.EventId,
                 domainEvent.SagaId,
                 domainEvent.VehicleId,
-                true),
+                false),
             SetMessageId<VehicleAddingToRentProcessed, VehicleAddedDomainEvent>(domainEvent), cancellationToken);
     }
 

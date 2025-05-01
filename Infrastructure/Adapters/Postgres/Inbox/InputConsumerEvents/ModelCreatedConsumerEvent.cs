@@ -9,7 +9,7 @@ public class ModelCreatedConsumerEvent(
     Guid modelId,
     double pricePerMinute,
     double pricePerHour,
-    double pricePerDay) : IInputConsumerEvent
+    double pricePerDay) : IConvertibleToCommand
 {
     public Guid EventId { get; } = eventId;
     public Guid ModelId { get; } = modelId;

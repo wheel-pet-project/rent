@@ -2,7 +2,7 @@ using Application.Ports.Postgres;
 using Application.Ports.Postgres.Repositories;
 using Application.UseCases.Commands.Booking.AddCompletedBooking;
 using Domain.SharedKernel.Errors;
-using Domain.SharedKernel.Exceptions.AlreadyHaveThisState;
+using Domain.SharedKernel.Exceptions.InternalExceptions.AlreadyHaveThisState;
 using FluentResults;
 using JetBrains.Annotations;
 using Moq;
