@@ -75,7 +75,7 @@ public class BookingRepositoryShould : IntegrationTestBase
         await Context.Customers.AddAsync(_customer);
         await Context.SaveChangesAsync();
     }
-    
+
     private async Task AssertEquivalentWithBookingFromDb(Booking expected)
     {
         Context.ChangeTracker.Clear();

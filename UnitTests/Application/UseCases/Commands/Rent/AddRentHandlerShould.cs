@@ -73,7 +73,10 @@ public class AddRentHandlerShould
                 _timeProvider));
 
         // Act
-        async Task Act() => await _handler.Handle(_command, TestContext.Current.CancellationToken);
+        async Task Act()
+        {
+            await _handler.Handle(_command, TestContext.Current.CancellationToken);
+        }
 
         // Assert
         await Assert.ThrowsAsync<AlreadyHaveThisStateException>(Act);

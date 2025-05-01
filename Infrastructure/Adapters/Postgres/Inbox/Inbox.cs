@@ -22,9 +22,9 @@ public class Inbox(NpgsqlDataSource dataSource) : IInbox
                 EventId = consumerEvent.EventId,
                 Type = consumerEvent.GetType().Name,
                 Content = JsonConvert.SerializeObject(consumerEvent, _jsonSettings),
-                OccurredOnUtc = DateTime.UtcNow,
+                OccurredOnUtc = DateTime.UtcNow
             }, transaction);
-            
+
             await transaction.CommitAsync();
         }
         catch (PostgresException e) when (e is { SqlState: DuplicateKeyCode })
@@ -35,7 +35,7 @@ public class Inbox(NpgsqlDataSource dataSource) : IInbox
         {
             return false;
         }
-        
+
         return true;
     }
 

@@ -11,8 +11,9 @@ public record RentCompletedDomainEvent : DomainEvent
         if (bookingId == Guid.Empty) throw new ArgumentException($"{nameof(bookingId)} cannot be empty");
         if (vehicleId == Guid.Empty) throw new ArgumentException($"{nameof(vehicleId)} cannot be empty");
         if (customerId == Guid.Empty) throw new ArgumentException($"{nameof(customerId)} cannot be empty");
-        if (actualAmount <= 0) throw new ArgumentException(
-            $"{nameof(actualAmount)} cannot be equal or less than zero");
+        if (actualAmount <= 0)
+            throw new ArgumentException(
+                $"{nameof(actualAmount)} cannot be equal or less than zero");
 
         RentId = rentId;
         BookingId = bookingId;

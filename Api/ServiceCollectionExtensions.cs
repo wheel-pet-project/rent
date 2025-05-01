@@ -32,75 +32,6 @@ public static class ServiceCollectionExtensions
 {
     private static readonly Configuration Configuration;
 
-    static ServiceCollectionExtensions()
-    {
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
-        Configuration = environment switch
-        {
-            "Development" => new Configuration
-            {
-                ApplicationName = "Rent#" + Environment.MachineName,
-                PostgresHost = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost",
-                PostgresPort = int.Parse(Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5480"),
-                PostgresDatabase = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "rent_db",
-                PostgresUsername = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres",
-                PostgresPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password",
-                BootstrapServers = (Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS") ??
-                                    "localhost:9092").Split("__"),
-                BookingCompletedTopic = Environment.GetEnvironmentVariable("BOOKING_COMPLETED_TOPIC") ??
-                                        "booking-completed-topic",
-                VehicleAddedTopic = Environment.GetEnvironmentVariable("VEHICLE_ADDED_TOPIC") ?? "vehicle-added-topic",
-                VehicleDeletedTopic = Environment.GetEnvironmentVariable("VEHICLE_DELETED_TOPIC") ??
-                                      "vehicle-deleted-topic",
-                VehicleAddingProcessedTopic =
-                    Environment.GetEnvironmentVariable("VEHICLE_ADDING_TO_RENT_PROCESSED_TOPIC") ??
-                    "vehicle-adding-to-rent-processed-topic",
-                ModelCreatedTopic = Environment.GetEnvironmentVariable("MODEL_CREATED_TOPIC") ??
-                                    "model-created-topic",
-                ModelTariffUpdatedTopic = Environment.GetEnvironmentVariable("MODEL_TARIFF_UPDATED_TOPIC") ??
-                                          "model-tariff-updated-topic",
-                RentStartedTopic = Environment.GetEnvironmentVariable("RENT_STARTED_TOPIC") ?? "rent-started-topic",
-                RentCompletedTopic = Environment.GetEnvironmentVariable("RENT_COMPLETED_TOPIC") ??
-                                     "rent-completed-topic",
-                DrivingLicenseApprovedTopic = Environment.GetEnvironmentVariable("DRIVING_LICENSE_APPROVED_TOPIC") ??
-                                              "driving-license-approved-topic",
-                MongoConnectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ??
-                                        "mongodb://carsharing:password@localhost:27017/drivinglicense?authSource=admin"
-            },
-            "Production" => new Configuration
-            {
-                ApplicationName = "Rent#" + Environment.MachineName,
-                PostgresHost = GetEnvironmentOrThrow("POSTGRES_HOST"),
-                PostgresPort = int.Parse(GetEnvironmentOrThrow("POSTGRES_PORT")),
-                PostgresDatabase = GetEnvironmentOrThrow("POSTGRES_DB"),
-                PostgresUsername = GetEnvironmentOrThrow("POSTGRES_USER"),
-                PostgresPassword = GetEnvironmentOrThrow("POSTGRES_PASSWORD"),
-                BootstrapServers = GetEnvironmentOrThrow("BOOTSTRAP_SERVERS")
-                    .Split("__"),
-                BookingCompletedTopic = GetEnvironmentOrThrow("BOOKING_COMPLETED_TOPIC"),
-                VehicleAddedTopic = GetEnvironmentOrThrow("VEHICLE_ADDED_TOPIC"),
-                VehicleDeletedTopic = GetEnvironmentOrThrow("VEHICLE_DELETED_TOPIC"),
-                VehicleAddingProcessedTopic = GetEnvironmentOrThrow("VEHICLE_ADDING_TO_RENT_PROCESSED_TOPIC"),
-                ModelCreatedTopic = GetEnvironmentOrThrow("MODEL_CREATED_TOPIC"),
-                ModelTariffUpdatedTopic = GetEnvironmentOrThrow("MODEL_TARIFF_UPDATED_TOPIC"),
-                RentStartedTopic = GetEnvironmentOrThrow("RENT_STARTED_TOPIC"),
-                RentCompletedTopic = GetEnvironmentOrThrow("RENT_COMPLETED_TOPIC"),
-                DrivingLicenseApprovedTopic = GetEnvironmentOrThrow("DRIVING_LICENSE_APPROVED_TOPIC"),
-                MongoConnectionString = GetEnvironmentOrThrow("MONGO_CONNECTION_STRING")
-            },
-            _ => throw new ArgumentException("Unknown environment")
-        };
-
-        return;
-
-        string GetEnvironmentOrThrow(string environmentName)
-        {
-            return Environment.GetEnvironmentVariable(environmentName) ??
-                   throw new ArgumentNullException(environmentName, "not exist in environment variables");
-        }
-    }
-
     public static IServiceCollection RegisterPostgresContextAndDataSource(this IServiceCollection services)
     {
         services.AddScoped<NpgsqlDataSource>(_ =>
@@ -216,6 +147,8 @@ public static class ServiceCollectionExtensions
 
             x.AddRider(rider =>
             {
+                const string rentGroupId = "rent-consumer-group";
+
                 rider.AddConsumer<BookingCompletedConsumer>();
                 rider.AddConsumer<DrivingLicenseApprovedConsumer>();
                 rider.AddConsumer<ModelCreatedConsumer>();
@@ -230,109 +163,50 @@ public static class ServiceCollectionExtensions
                 rider.UsingKafka((context, k) =>
                 {
                     k.TopicEndpoint<BookingCompleted>(Configuration.BookingCompletedTopic,
-                        "rent-consumer-group",
-                        e =>
-                        {
-                            e.EnableAutoOffsetStore = false;
-                            e.EnablePartitionEof = true;
-                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
-                            e.CreateIfMissing();
-                            e.UseKillSwitch(cfg =>
-                                cfg.SetActivationThreshold(1)
-                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
-                                    .SetTripThreshold(0.05)
-                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
-                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
-                            e.ConfigureConsumer<BookingCompletedConsumer>(context);
-                        });
-                    
+                        rentGroupId,
+                        ConfigureEndpoint<BookingCompletedConsumer, BookingCompleted>);
+
                     k.TopicEndpoint<DrivingLicenseApproved>(Configuration.DrivingLicenseApprovedTopic,
-                        "rent-consumer-group",
-                        e =>
-                        {
-                            e.EnableAutoOffsetStore = false;
-                            e.EnablePartitionEof = true;
-                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
-                            e.CreateIfMissing();
-                            e.UseKillSwitch(cfg =>
-                                cfg.SetActivationThreshold(1)
-                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
-                                    .SetTripThreshold(0.05)
-                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
-                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
-                            e.ConfigureConsumer<DrivingLicenseApprovedConsumer>(context);
-                        });
+                        rentGroupId,
+                        ConfigureEndpoint<DrivingLicenseApprovedConsumer, DrivingLicenseApproved>);
 
                     k.TopicEndpoint<ModelCreated>(Configuration.ModelCreatedTopic,
-                        "rent-consumer-group",
-                        e =>
-                        {
-                            e.EnableAutoOffsetStore = false;
-                            e.EnablePartitionEof = true;
-                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
-                            e.CreateIfMissing();
-                            e.UseKillSwitch(cfg =>
-                                cfg.SetActivationThreshold(1)
-                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
-                                    .SetTripThreshold(0.05)
-                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
-                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
-                            e.ConfigureConsumer<ModelCreatedConsumer>(context);
-                        });
+                        rentGroupId,
+                        ConfigureEndpoint<ModelCreatedConsumer, ModelCreated>);
 
                     k.TopicEndpoint<ModelTariffUpdated>(Configuration.ModelTariffUpdatedTopic,
-                        "rent-consumer-group",
-                        e =>
-                        {
-                            e.EnableAutoOffsetStore = false;
-                            e.EnablePartitionEof = true;
-                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
-                            e.CreateIfMissing();
-                            e.UseKillSwitch(cfg =>
-                                cfg.SetActivationThreshold(1)
-                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
-                                    .SetTripThreshold(0.05)
-                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
-                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
-                            e.ConfigureConsumer<ModelTariffUpdatedConsumer>(context);
-                        });
+                        rentGroupId,
+                        ConfigureEndpoint<ModelTariffUpdatedConsumer, ModelTariffUpdated>);
 
                     k.TopicEndpoint<VehicleAdded>(Configuration.VehicleAddedTopic,
-                        "rent-consumer-group",
-                        e =>
-                        {
-                            e.EnableAutoOffsetStore = false;
-                            e.EnablePartitionEof = true;
-                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
-                            e.CreateIfMissing();
-                            e.UseKillSwitch(cfg =>
-                                cfg.SetActivationThreshold(1)
-                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
-                                    .SetTripThreshold(0.05)
-                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
-                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
-                            e.ConfigureConsumer<VehicleAddedConsumer>(context);
-                        });
+                        rentGroupId,
+                        ConfigureEndpoint<VehicleAddedConsumer, VehicleAdded>);
 
                     k.TopicEndpoint<VehicleDeleted>(Configuration.VehicleDeletedTopic,
-                        "rent-consumer-group",
-                        e =>
-                        {
-                            e.EnableAutoOffsetStore = false;
-                            e.EnablePartitionEof = true;
-                            e.AutoOffsetReset = AutoOffsetReset.Earliest;
-                            e.CreateIfMissing();
-                            e.UseKillSwitch(cfg =>
-                                cfg.SetActivationThreshold(1)
-                                    .SetRestartTimeout(TimeSpan.FromMinutes(1))
-                                    .SetTripThreshold(0.05)
-                                    .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
-                            e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
-                            e.ConfigureConsumer<VehicleDeletedConsumer>(context);
-                        });
+                        rentGroupId,
+                        ConfigureEndpoint<VehicleDeletedConsumer, VehicleDeleted>);
 
 
                     k.Host(Configuration.BootstrapServers);
+
+                    return;
+
+
+                    void ConfigureEndpoint<TConsumer, TEvent>(IKafkaTopicReceiveEndpointConfigurator<Ignore, TEvent> e)
+                        where TConsumer : class, IConsumer
+                        where TEvent : class
+                    {
+                        e.EnableAutoOffsetStore = false;
+                        e.EnablePartitionEof = true;
+                        e.AutoOffsetReset = AutoOffsetReset.Earliest;
+                        e.CreateIfMissing();
+                        e.UseKillSwitch(cfg => cfg.SetActivationThreshold(1)
+                            .SetRestartTimeout(TimeSpan.FromMinutes(1))
+                            .SetTripThreshold(0.05)
+                            .SetTrackingPeriod(TimeSpan.FromMinutes(1)));
+                        e.UseMessageRetry(retry => retry.Interval(200, TimeSpan.FromSeconds(1)));
+                        e.ConfigureConsumer<TConsumer>(context);
+                    }
                 });
             });
         });
@@ -400,7 +274,22 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection RegisterHealthCheckV1(this IServiceCollection services)
     {
-        var getConnectionString = () =>
+        services.AddGrpcHealthChecks()
+            .AddNpgSql(GetConnectionString(), timeout: TimeSpan.FromSeconds(10))
+            .AddKafka(cfg =>
+                    cfg.BootstrapServers = Configuration.BootstrapServers[0],
+                timeout: TimeSpan.FromSeconds(10));
+
+        return services;
+
+        string GetConnectionString()
+        {
+            var connectionBuilder = BuildConnectionString();
+
+            return connectionBuilder.ConnectionString;
+        }
+
+        NpgsqlConnectionStringBuilder BuildConnectionString()
         {
             var connectionBuilder = new NpgsqlConnectionStringBuilder
             {
@@ -412,17 +301,77 @@ public static class ServiceCollectionExtensions
                 Password = Configuration.PostgresPassword,
                 BrowsableConnectionString = false
             };
+            return connectionBuilder;
+        }
+    }
 
-            return connectionBuilder.ConnectionString;
+    static ServiceCollectionExtensions()
+    {
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+        Configuration = environment switch
+        {
+            "Development" => new Configuration
+            {
+                ApplicationName = "Rent#" + Environment.MachineName,
+                PostgresHost = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost",
+                PostgresPort = int.Parse(Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5480"),
+                PostgresDatabase = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "rent_db",
+                PostgresUsername = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres",
+                PostgresPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password",
+                BootstrapServers = (Environment.GetEnvironmentVariable("BOOTSTRAP_SERVERS") ??
+                                    "localhost:9092").Split("__"),
+                BookingCompletedTopic = Environment.GetEnvironmentVariable("BOOKING_COMPLETED_TOPIC") ??
+                                        "booking-completed-topic",
+                VehicleAddedTopic = Environment.GetEnvironmentVariable("VEHICLE_ADDED_TOPIC") ?? "vehicle-added-topic",
+                VehicleDeletedTopic = Environment.GetEnvironmentVariable("VEHICLE_DELETED_TOPIC") ??
+                                      "vehicle-deleted-topic",
+                VehicleAddingProcessedTopic =
+                    Environment.GetEnvironmentVariable("VEHICLE_ADDING_TO_RENT_PROCESSED_TOPIC") ??
+                    "vehicle-adding-to-rent-processed-topic",
+                ModelCreatedTopic = Environment.GetEnvironmentVariable("MODEL_CREATED_TOPIC") ??
+                                    "model-created-topic",
+                ModelTariffUpdatedTopic = Environment.GetEnvironmentVariable("MODEL_TARIFF_UPDATED_TOPIC") ??
+                                          "model-tariff-updated-topic",
+                RentStartedTopic = Environment.GetEnvironmentVariable("RENT_STARTED_TOPIC") ?? "rent-started-topic",
+                RentCompletedTopic = Environment.GetEnvironmentVariable("RENT_COMPLETED_TOPIC") ??
+                                     "rent-completed-topic",
+                DrivingLicenseApprovedTopic = Environment.GetEnvironmentVariable("DRIVING_LICENSE_APPROVED_TOPIC") ??
+                                              "driving-license-approved-topic",
+                MongoConnectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING") ??
+                                        "mongodb://carsharing:password@localhost:27017/drivinglicense?authSource=admin"
+            },
+            "Production" => new Configuration
+            {
+                ApplicationName = "Rent#" + Environment.MachineName,
+                PostgresHost = GetEnvironmentOrThrow("POSTGRES_HOST"),
+                PostgresPort = int.Parse(GetEnvironmentOrThrow("POSTGRES_PORT")),
+                PostgresDatabase = GetEnvironmentOrThrow("POSTGRES_DB"),
+                PostgresUsername = GetEnvironmentOrThrow("POSTGRES_USER"),
+                PostgresPassword = GetEnvironmentOrThrow("POSTGRES_PASSWORD"),
+                BootstrapServers = GetEnvironmentOrThrow("BOOTSTRAP_SERVERS")
+                    .Split("__"),
+                BookingCompletedTopic = GetEnvironmentOrThrow("BOOKING_COMPLETED_TOPIC"),
+                VehicleAddedTopic = GetEnvironmentOrThrow("VEHICLE_ADDED_TOPIC"),
+                VehicleDeletedTopic = GetEnvironmentOrThrow("VEHICLE_DELETED_TOPIC"),
+                VehicleAddingProcessedTopic = GetEnvironmentOrThrow("VEHICLE_ADDING_TO_RENT_PROCESSED_TOPIC"),
+                ModelCreatedTopic = GetEnvironmentOrThrow("MODEL_CREATED_TOPIC"),
+                ModelTariffUpdatedTopic = GetEnvironmentOrThrow("MODEL_TARIFF_UPDATED_TOPIC"),
+                RentStartedTopic = GetEnvironmentOrThrow("RENT_STARTED_TOPIC"),
+                RentCompletedTopic = GetEnvironmentOrThrow("RENT_COMPLETED_TOPIC"),
+                DrivingLicenseApprovedTopic = GetEnvironmentOrThrow("DRIVING_LICENSE_APPROVED_TOPIC"),
+                MongoConnectionString = GetEnvironmentOrThrow("MONGO_CONNECTION_STRING")
+            },
+            _ => throw new ArgumentException("Unknown environment")
         };
 
-        services.AddGrpcHealthChecks()
-            .AddNpgSql(getConnectionString(), timeout: TimeSpan.FromSeconds(10))
-            .AddKafka(cfg =>
-                    cfg.BootstrapServers = Configuration.BootstrapServers[0],
-                timeout: TimeSpan.FromSeconds(10));
+        return;
 
-        return services;
+        string GetEnvironmentOrThrow(string environmentName)
+        {
+            return Environment.GetEnvironmentVariable(environmentName) ??
+                   throw new ArgumentNullException(environmentName, "not exist in environment variables");
+        }
     }
 }
 

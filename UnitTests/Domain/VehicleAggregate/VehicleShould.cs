@@ -14,6 +14,7 @@ public class VehicleShould
 
     private readonly Guid _sagaId = Guid.NewGuid();
     private readonly Guid _vehicleId = Guid.NewGuid();
+
     private readonly VehicleModel _vehicleModel =
         VehicleModel.Create(Guid.NewGuid(), Tariff.Create(10.0M, 500.0M, 2000.0M));
 
@@ -44,7 +45,7 @@ public class VehicleShould
         // Assert
         Assert.Throws<ValueIsRequiredException>(Act);
     }
-    
+
     [Fact]
     public void ThrowValueIsRequiredExceptionIfIdIsEmpty()
     {

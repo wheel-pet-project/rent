@@ -18,15 +18,15 @@ public class RentCompletedHandlerShould
 {
     private readonly RentCompletedDomainEvent _event = new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
         Guid.NewGuid(), 100);
-    
+
     private readonly Customer _customer = Customer.Create(Guid.NewGuid());
-    
+
     private readonly Mock<IMessageBus> _messageBusMock = new();
     private readonly Mock<ICustomerRepository> _customerRepositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
 
     private readonly RentCompletedHandler _handler;
-    
+
     public RentCompletedHandlerShould()
     {
         _customerRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(_customer);
@@ -43,12 +43,15 @@ public class RentCompletedHandlerShould
         _customerRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(null as Customer);
 
         // Act
-        async Task Act() => await _handler.Handle(_event, TestContext.Current.CancellationToken);
+        async Task Act()
+        {
+            await _handler.Handle(_event, TestContext.Current.CancellationToken);
+        }
 
         // Assert
         await Assert.ThrowsAsync<DataConsistencyViolationException>(Act);
     }
-    
+
     [Fact]
     public async Task CallMessageBusPublish()
     {
@@ -62,15 +65,19 @@ public class RentCompletedHandlerShould
             x => x.Publish(It.IsAny<RentCompletedDomainEvent>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
-    
+
     [Fact]
     public async Task ThrowExceptionInCommitErrorIfCommitFailed()
     {
         // Arrange
-        _unitOfWorkMock.Setup(x => x.Commit()).ReturnsAsync(Result.Fail(new CommitFail("", new DataConsistencyViolationException())));
+        _unitOfWorkMock.Setup(x => x.Commit())
+            .ReturnsAsync(Result.Fail(new CommitFail("", new DataConsistencyViolationException())));
 
         // Act
-        async Task Act() => await _handler.Handle(_event, TestContext.Current.CancellationToken);
+        async Task Act()
+        {
+            await _handler.Handle(_event, TestContext.Current.CancellationToken);
+        }
 
         // Assert
         await Assert.ThrowsAsync<DataConsistencyViolationException>(Act);

@@ -13,9 +13,10 @@ public class AddCompletedBookingHandler(
     public async Task<Result> Handle(AddCompletedBookingCommand command, CancellationToken _)
     {
         await CheckBookingExisting(command);
-        
+
         var existingBooking = await bookingRepository.GetById(command.BookingId);
-        if (existingBooking != null) throw new AlreadyHaveThisStateException(
+        if (existingBooking != null)
+            throw new AlreadyHaveThisStateException(
                 $"Booking with id: {command.BookingId} already exists");
 
         var booking = Domain.BookingAggregate.Booking.Create(command.BookingId, command.VehicleId, command.CustomerId);
@@ -27,7 +28,7 @@ public class AddCompletedBookingHandler(
 
     private async Task CheckBookingExisting(AddCompletedBookingCommand command)
     {
-        if (await bookingRepository.GetById(command.BookingId) != null) 
+        if (await bookingRepository.GetById(command.BookingId) != null)
             throw new AlreadyHaveThisStateException("Booking already exists");
     }
 }

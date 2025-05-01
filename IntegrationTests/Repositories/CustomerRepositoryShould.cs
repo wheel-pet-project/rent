@@ -11,7 +11,7 @@ namespace IntegrationTests.Repositories;
 public class CustomerRepositoryShould : IntegrationTestBase
 {
     private readonly Customer _customer = Customer.Create(Guid.NewGuid());
-    
+
     [Fact]
     public async Task Add()
     {
@@ -56,19 +56,19 @@ public class CustomerRepositoryShould : IntegrationTestBase
         // Assert
         Assert.Equivalent(_customer, actual);
     }
-    
+
     private async Task AddCustomer()
     {
         Context.Attach(_customer.Level);
         await Context.Customers.AddAsync(_customer);
         await Context.SaveChangesAsync();
     }
-    
+
     private (Infrastructure.Adapters.Postgres.UnitOfWork, CustomerRepository) Build(DataContext context)
     {
         return (new Infrastructure.Adapters.Postgres.UnitOfWork(context), new CustomerRepository(context));
     }
-    
+
     private async Task AssertEquivalentWithCustomerFromDb(Customer expected)
     {
         Context.ChangeTracker.Clear();

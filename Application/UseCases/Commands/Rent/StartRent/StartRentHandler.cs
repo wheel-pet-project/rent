@@ -10,7 +10,7 @@ namespace Application.UseCases.Commands.Rent.StartRent;
 
 public class StartRentHandler(
     IRentRepository rentRepository,
-    ICustomerRepository customerRepository, 
+    ICustomerRepository customerRepository,
     IBookingRepository bookingRepository,
     IVehicleRepository vehicleRepository,
     IVehicleModelRepository vehicleModelRepository,
@@ -20,7 +20,7 @@ public class StartRentHandler(
     public async Task<Result<StartRentResponse>> Handle(StartRentCommand command, CancellationToken _)
     {
         await CheckRentExisting(command);
-        
+
         var (booking, customer, vehicle) = await GetNeededAggregates(command);
         if (booking == null) return Result.Fail(new NotFound("Booking not found"));
         if (customer == null) return Result.Fail(new NotFound("Customer not found"));
@@ -33,18 +33,20 @@ public class StartRentHandler(
         await rentRepository.Add(rent);
 
         var commitResult = await unitOfWork.Commit();
-        
+
         return commitResult.IsSuccess
             ? new StartRentResponse(rent.Id)
             : commitResult;
     }
 
-    private async Task<Domain.VehicleModelAggregate.VehicleModel> GetVehicleModelOrThrow(Domain.VehicleAggregate.Vehicle vehicle)
+    private async Task<Domain.VehicleModelAggregate.VehicleModel> GetVehicleModelOrThrow(
+        Domain.VehicleAggregate.Vehicle vehicle)
     {
         var vehicleModel = await vehicleModelRepository.GetById(vehicle.VehicleModelId);
-        if (vehicleModel == null) throw new DataConsistencyViolationException(
-            $"Vehicle model with id: {vehicle.VehicleModelId} not found");
-        
+        if (vehicleModel == null)
+            throw new DataConsistencyViolationException(
+                $"Vehicle model with id: {vehicle.VehicleModelId} not found");
+
         return vehicleModel;
     }
 
@@ -54,12 +56,14 @@ public class StartRentHandler(
             throw new AlreadyHaveThisStateException("Rent already exists");
     }
 
-    private async Task<(Domain.BookingAggregate.Booking? booking, Domain.CustomerAggregate.Customer? customer, Domain.VehicleAggregate.Vehicle? vehicle)> GetNeededAggregates(StartRentCommand command)
+    private async
+        Task<(Domain.BookingAggregate.Booking? booking, Domain.CustomerAggregate.Customer? customer,
+            Domain.VehicleAggregate.Vehicle? vehicle)> GetNeededAggregates(StartRentCommand command)
     {
         var booking = await bookingRepository.GetById(command.BookingId);
         var customer = await customerRepository.GetById(command.CustomerId);
         var vehicle = await vehicleRepository.GetById(command.VehicleId);
-        
+
         return (booking, customer, vehicle);
     }
 }

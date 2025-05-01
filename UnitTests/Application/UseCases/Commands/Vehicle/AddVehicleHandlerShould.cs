@@ -55,12 +55,15 @@ public class AddVehicleHandlerShould
                 global::Domain.VehicleAggregate.Vehicle.Create(Guid.NewGuid(), Guid.NewGuid(), _vehicleModel));
 
         // Act
-        async Task Act() => await _handler.Handle(_command, TestContext.Current.CancellationToken);
+        async Task Act()
+        {
+            await _handler.Handle(_command, TestContext.Current.CancellationToken);
+        }
 
         // Assert
         await Assert.ThrowsAsync<AlreadyHaveThisStateException>(Act);
     }
-    
+
     [Fact]
     public async Task ReturnNotFoundErrorIfVehicleModelNotFound()
     {

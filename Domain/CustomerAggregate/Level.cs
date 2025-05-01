@@ -37,25 +37,27 @@ public sealed class Level : Entity<int>
             throw new DomainRulesViolationException(
                 $"{nameof(currentPoints)} not in range for changing level");
 
-        return currentPoints < NeededPoints 
-            ? GetLevelDownOrThrow() 
+        return currentPoints < NeededPoints
+            ? GetLevelDownOrThrow()
             : GetLevelUpOrThrow();
 
         Level GetLevelDownOrThrow()
         {
             var levelDown = All().SingleOrDefault(x => x.Id == Id - 1);
-            if (levelDown == null) throw new DomainRulesViolationException(
-                "This level already min, validation for needing changing incorrect");
-            
+            if (levelDown == null)
+                throw new DomainRulesViolationException(
+                    "This level already min, validation for needing changing incorrect");
+
             return levelDown;
         }
-        
+
         Level GetLevelUpOrThrow()
         {
             var levelUp = All().SingleOrDefault(x => x.Id == Id + 1);
-            if (levelUp == null) throw new DomainRulesViolationException(
-                "This level already max, validation for needing changing incorrect");
-            
+            if (levelUp == null)
+                throw new DomainRulesViolationException(
+                    "This level already max, validation for needing changing incorrect");
+
             return levelUp;
         }
     }

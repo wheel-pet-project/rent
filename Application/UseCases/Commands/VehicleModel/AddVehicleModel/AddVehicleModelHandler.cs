@@ -15,7 +15,7 @@ public class AddVehicleModelHandler(
     public async Task<Result> Handle(AddVehicleModelCommand command, CancellationToken cancellationToken)
     {
         await CheckVehicleModelExisting(command);
-        
+
         var tariff = Tariff.Create(
             (decimal)command.PricePerMinute,
             (decimal)command.PricePerHour,

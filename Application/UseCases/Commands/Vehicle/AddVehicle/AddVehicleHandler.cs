@@ -15,7 +15,7 @@ public class AddVehicleHandler(
     public async Task<Result> Handle(AddVehicleCommand command, CancellationToken _)
     {
         await CheckVehicleExisting(command);
-        
+
         var vehicleModel = await vehicleModelRepository.GetById(command.VehicleModelId);
         if (vehicleModel == null) return Result.Fail(new NotFound("Vehicle model not found"));
 

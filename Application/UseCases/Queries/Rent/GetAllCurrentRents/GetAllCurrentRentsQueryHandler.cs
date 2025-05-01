@@ -26,7 +26,7 @@ public class GetAllCurrentRentsQueryHandler(
     {
         page ??= 1;
         pageSize ??= 10;
-        
+
         return page.Value < 1
             ? 1
             : (page.Value - 1) * pageSize.Value;
@@ -38,7 +38,7 @@ public class GetAllCurrentRentsQueryHandler(
             .Select(x => new RentShortModel(x.RentId, x.VehicleId, x.CustomerId, x.Start))
             .ToList());
     }
-    
+
     private record RentDapperModel(Guid RentId, Guid VehicleId, Guid CustomerId, DateTime Start);
 
     private const string Sql =

@@ -47,7 +47,7 @@ public sealed class LoyaltyPoints : ValueObject
         {
             if (points < LowestPoints.Value) return LowestPoints.Value;
             if (points > HighestPoints.Value) return HighestPoints.Value;
-            
+
             return points;
         }
     }

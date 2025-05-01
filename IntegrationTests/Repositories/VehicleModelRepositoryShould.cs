@@ -40,7 +40,7 @@ public class VehicleModelRepositoryShould : IntegrationTestBase
         // Act
         repository.Update(model);
         await uow.Commit();
-        
+
         // Assert
         await AssertEquivalentWithModelFromDb(model);
     }
@@ -54,22 +54,22 @@ public class VehicleModelRepositoryShould : IntegrationTestBase
 
         // Act
         var actual = await repository.GetById(_model.Id);
-        
+
         // Assert
         Assert.Equivalent(_model, actual);
     }
-    
+
     private async Task AddVehicleModel()
     {
         await Context.VehicleModels.AddAsync(_model);
         await Context.SaveChangesAsync();
     }
-    
+
     private (Infrastructure.Adapters.Postgres.UnitOfWork, VehicleModelRepository) Build(DataContext context)
     {
         return (new Infrastructure.Adapters.Postgres.UnitOfWork(context), new VehicleModelRepository(context));
     }
-    
+
     private async Task AssertEquivalentWithModelFromDb(VehicleModel expected)
     {
         Context.ChangeTracker.Clear();

@@ -27,7 +27,7 @@ public class VehicleRepositoryShould : IntegrationTestBase
         // Arrange
         await AddNeededVehicleModel();
         var (uow, repository) = Build(Context);
-        
+
         // Act
         await repository.Add(_vehicle);
         await uow.Commit();
@@ -42,9 +42,9 @@ public class VehicleRepositoryShould : IntegrationTestBase
         // Arrange
         await AddVehicle();
         var (uow, repository) = Build(Context);
-        var vehicle = await repository.GetById(_vehicle.Id); 
+        var vehicle = await repository.GetById(_vehicle.Id);
         vehicle!.Delete();
-        
+
         // Act
         repository.Update(vehicle);
         await uow.Commit();
@@ -56,22 +56,22 @@ public class VehicleRepositoryShould : IntegrationTestBase
     private async Task AddVehicle()
     {
         await AddNeededVehicleModel();
-        
+
         await Context.Vehicles.AddAsync(_vehicle);
         await Context.SaveChangesAsync();
     }
-    
+
     private async Task AddNeededVehicleModel()
     {
         await Context.VehicleModels.AddAsync(_model);
         await Context.SaveChangesAsync();
     }
-    
+
     private (Infrastructure.Adapters.Postgres.UnitOfWork, VehicleRepository) Build(DataContext context)
     {
         return (new Infrastructure.Adapters.Postgres.UnitOfWork(context), new VehicleRepository(context));
     }
-    
+
     private async Task AssertEquivalentWithVehicleFromDb(Vehicle expected)
     {
         var vehicleFromDb = await Context.Vehicles.FirstOrDefaultAsync(x => x.Id == _vehicle.Id);

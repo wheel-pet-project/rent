@@ -20,7 +20,7 @@ public class VehicleAddedDomainEventShould
         // Assert
         Assert.Equal(_vehicleId, actual.VehicleId);
     }
-    
+
     [Fact]
     public void ThrowArgumentExceptionIfSagaIdIsEmpty()
     {

@@ -79,7 +79,7 @@ public class RentRepositoryShould : IntegrationTestBase
         _rent.ClearDomainEvents();
         Assert.Equivalent(_rent, actual);
     }
-    
+
     private async Task AddRent()
     {
         await AddNeededAggregates();
@@ -88,7 +88,7 @@ public class RentRepositoryShould : IntegrationTestBase
         await Context.Rents.AddAsync(_rent);
         await Context.SaveChangesAsync();
     }
-    
+
     private async Task AddNeededAggregates()
     {
         await Context.VehicleModels.AddAsync(_vehicleModel);
@@ -102,12 +102,12 @@ public class RentRepositoryShould : IntegrationTestBase
         await Context.Bookings.AddAsync(_booking);
         await Context.SaveChangesAsync();
     }
-    
+
     private (Infrastructure.Adapters.Postgres.UnitOfWork, RentRepository) Build(DataContext context)
     {
         return (new Infrastructure.Adapters.Postgres.UnitOfWork(context), new RentRepository(context));
     }
-    
+
     private async Task AssertEquivalentWithRentFromDb(Rent expected)
     {
         var rentFromDb = await Context.Rents

@@ -49,12 +49,15 @@ public class AddVehicleModelHandlerShould
                 Tariff.Create(10.0M, 200.0M, 1000.0M)));
 
         // Act
-        async Task Act() => await _handler.Handle(_command, TestContext.Current.CancellationToken);
+        async Task Act()
+        {
+            await _handler.Handle(_command, TestContext.Current.CancellationToken);
+        }
 
         // Assert
         await Assert.ThrowsAsync<AlreadyHaveThisStateException>(Act);
     }
-    
+
     [Fact]
     public async Task ReturnCommitFailErrorIfCommitFailed()
     {
