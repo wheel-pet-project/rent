@@ -39,19 +39,38 @@ public class Rent : Aggregate
 
     public decimal GetCurrentAmount(TimeProvider timeProvider)
     {
-        const int minAmount = 50;
-
         if (timeProvider == null) throw new ValueIsRequiredException($"{nameof(timeProvider)} cannot be null");
 
-        var currentAmount = End == null
-            ? Tariff.PricePerMinute * (decimal)(timeProvider.GetUtcNow().UtcDateTime - Start).TotalMinutes
-            : Tariff.PricePerMinute * (decimal)(End - Start).Value.TotalMinutes;
-
-        currentAmount += minAmount;
-
-        var roundedAmount = decimal.Round(currentAmount, 2);
+        var currentAmount = CalculateCurrentAmount();
+        var roundedAmount = RoundAmount(currentAmount);
 
         return roundedAmount;
+
+        decimal CalculateCurrentAmount()
+        {
+            const int minAmount = 50;
+
+            var amount = End == null
+                ? CalculateAmountForNotCompletedRent()
+                : CalculateAmountForCompletedRent();
+
+            return amount + minAmount;
+        }
+
+        decimal CalculateAmountForNotCompletedRent()
+        {
+            return Tariff.PricePerMinute * (decimal)(timeProvider.GetUtcNow().UtcDateTime - Start).TotalMinutes;
+        }
+
+        decimal CalculateAmountForCompletedRent()
+        {
+            return Tariff.PricePerMinute * (decimal)(End - Start).Value.TotalMinutes;
+        }
+
+        decimal RoundAmount(decimal amount)
+        {
+            return decimal.Round(amount, 2);
+        }
     }
 
     public decimal Complete(TimeProvider timeProvider)

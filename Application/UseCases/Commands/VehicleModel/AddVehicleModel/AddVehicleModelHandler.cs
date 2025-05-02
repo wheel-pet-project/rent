@@ -14,7 +14,7 @@ public class AddVehicleModelHandler(
 {
     public async Task<Result> Handle(AddVehicleModelCommand command, CancellationToken cancellationToken)
     {
-        await CheckVehicleModelExisting(command);
+        await CheckVehicleModelExistingOrThrow(command);
 
         var tariff = Tariff.Create(
             (decimal)command.PricePerMinute,
@@ -28,7 +28,7 @@ public class AddVehicleModelHandler(
         return await unitOfWork.Commit();
     }
 
-    private async Task CheckVehicleModelExisting(AddVehicleModelCommand command)
+    private async Task CheckVehicleModelExistingOrThrow(AddVehicleModelCommand command)
     {
         if (await vehicleModelRepository.GetById(command.VehicleModelId) != null)
             throw new AlreadyHaveThisStateException("Vehicle model already exists");

@@ -19,7 +19,7 @@ public class StartRentHandler(
 {
     public async Task<Result<StartRentResponse>> Handle(StartRentCommand command, CancellationToken _)
     {
-        await CheckRentExisting(command);
+        await CheckRentExistingOrThrow(command);
 
         var (booking, customer, vehicle) = await GetNeededAggregates(command);
         if (booking == null) return Result.Fail(new NotFound("Booking not found"));
@@ -50,7 +50,7 @@ public class StartRentHandler(
         return vehicleModel;
     }
 
-    private async Task CheckRentExisting(StartRentCommand command)
+    private async Task CheckRentExistingOrThrow(StartRentCommand command)
     {
         if (await rentRepository.GetByBookingId(command.BookingId) != null)
             throw new AlreadyHaveThisStateException("Rent already exists");
