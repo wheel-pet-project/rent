@@ -12,7 +12,7 @@ public class AddCompletedBookingHandler(
 {
     public async Task<Result> Handle(AddCompletedBookingCommand command, CancellationToken _)
     {
-        await CheckBookingExistingOrThrow(command);
+        await ThrowIfBookingExist(command);
 
         var existingBooking = await bookingRepository.GetById(command.BookingId);
         if (existingBooking != null)
@@ -26,7 +26,7 @@ public class AddCompletedBookingHandler(
         return await unitOfWork.Commit();
     }
 
-    private async Task CheckBookingExistingOrThrow(AddCompletedBookingCommand command)
+    private async Task ThrowIfBookingExist(AddCompletedBookingCommand command)
     {
         if (await bookingRepository.GetById(command.BookingId) != null)
             throw new AlreadyHaveThisStateException("Booking already exists");

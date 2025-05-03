@@ -14,7 +14,7 @@ public class AddVehicleHandler(
 {
     public async Task<Result> Handle(AddVehicleCommand command, CancellationToken _)
     {
-        await CheckVehicleExistingOrThrow(command);
+        await ThrowIfVehicleExist(command);
 
         var vehicleModel = await vehicleModelRepository.GetById(command.VehicleModelId);
         if (vehicleModel == null) return Result.Fail(new NotFound("Vehicle model not found"));
@@ -26,7 +26,7 @@ public class AddVehicleHandler(
         return await unitOfWork.Commit();
     }
 
-    private async Task CheckVehicleExistingOrThrow(AddVehicleCommand command)
+    private async Task ThrowIfVehicleExist(AddVehicleCommand command)
     {
         if (await vehicleRepository.GetById(command.VehicleId) != null)
             throw new AlreadyHaveThisStateException("Vehicle already exists");

@@ -12,15 +12,18 @@ public class AddApprovedCustomerHandler(
 {
     public async Task<Result> Handle(AddApprovedCustomerCommand command, CancellationToken cancellationToken)
     {
-        var existingCustomer = await customerRepository.GetById(command.CustomerId);
-        if (existingCustomer != null)
-            throw new AlreadyHaveThisStateException(
-                $"Customer with id: {command.CustomerId} already exists");
+        await ThrowIfCustomerExist(command);
 
         var customer = Domain.CustomerAggregate.Customer.Create(command.CustomerId);
 
         await customerRepository.Add(customer);
 
         return await unitOfWork.Commit();
+    }
+
+    private async Task ThrowIfCustomerExist(AddApprovedCustomerCommand command)
+    {
+        if (await customerRepository.GetById(command.CustomerId) != null)
+            throw new AlreadyHaveThisStateException("Customer already exists");
     }
 }

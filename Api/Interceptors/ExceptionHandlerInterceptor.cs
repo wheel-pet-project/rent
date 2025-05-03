@@ -23,7 +23,7 @@ public class ExceptionHandlerInterceptor(ILogger<ExceptionHandlerInterceptor> lo
         }
         catch (InternalException e)
         {
-            logger.LogCritical("DataConsistencyViolationException: {@exception}", e);
+            logger.LogCritical("Internal exception: {@exception}", e);
             throw new RpcException(new Status(StatusCode.Internal, "Internal error"));
         }
         catch (Exception e) when (e is not RpcException)
