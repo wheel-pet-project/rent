@@ -15,7 +15,8 @@ public class GetRentByIdQueryHandler(
         CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        var rent = await connection.QuerySingleOrDefaultAsync<RentDapperModel>(Sql, new { RentId = query.RentId });
+        var command = new CommandDefinition(Sql, new { RentId = query.RentId }, cancellationToken: cancellationToken);
+        var rent = await connection.QuerySingleOrDefaultAsync<RentDapperModel>(command);
         if (rent == null) return Result.Fail(new NotFound("Rent not found"));
 
         return MapToResponse(rent);

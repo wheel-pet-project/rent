@@ -13,11 +13,12 @@ public class GetAllCurrentRentsQueryHandler(
         CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        var rents = (await connection.QueryAsync<RentDapperModel>(Sql, new
+        var command = new CommandDefinition(Sql, new
         {
             Limit = query.PageSize,
             Offset = CalculateOffset(query.Page, query.PageSize)
-        })).AsList();
+        }, cancellationToken: cancellationToken);
+        var rents = (await connection.QueryAsync<RentDapperModel>(command)).AsList();
 
         return MapToResponse(rents);
     }
