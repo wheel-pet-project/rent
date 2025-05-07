@@ -56,30 +56,14 @@ public class StartRentHandler(
             throw new AlreadyHaveThisStateException("Rent already exists");
     }
 
-    private async Task<(
-        Domain.BookingAggregate.Booking? booking,
-        Domain.CustomerAggregate.Customer? customer,
-        Domain.VehicleAggregate.Vehicle? vehicle)> GetNeededAggregates(StartRentCommand command)
+    private async
+        Task<(Domain.BookingAggregate.Booking? booking, Domain.CustomerAggregate.Customer? customer,
+            Domain.VehicleAggregate.Vehicle? vehicle)> GetNeededAggregates(StartRentCommand command)
     {
-        Domain.BookingAggregate.Booking? booking = null;
-        Domain.CustomerAggregate.Customer? customer = null;
-        Domain.VehicleAggregate.Vehicle? vehicle = null;
-
-        var tasks = new List<Task>(
-        [
-            GetBooking(),
-            GetCustomer(),
-            GetVehicle()
-        ]);
-
-        await Task.WhenAll(tasks);
+        var booking = await bookingRepository.GetById(command.BookingId);
+        var customer = await customerRepository.GetById(command.CustomerId);
+        var vehicle = await vehicleRepository.GetById(command.VehicleId);
 
         return (booking, customer, vehicle);
-
-        async Task GetBooking() => booking = await bookingRepository.GetById(command.BookingId);
-
-        async Task GetCustomer() => customer = await customerRepository.GetById(command.CustomerId);
-
-        async Task GetVehicle() => vehicle = await vehicleRepository.GetById(command.VehicleId);
     }
 }
