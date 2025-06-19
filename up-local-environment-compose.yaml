@@ -3,7 +3,7 @@
   # Database  
   c-rent-db:
     container_name: c-rent-db
-    image: postgres:latest
+    image: postgres:17
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
